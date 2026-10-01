@@ -1,5 +1,6 @@
 package com.example.myapplication.presentation.ui
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -144,8 +145,7 @@ fun App() {
 @Composable
 fun PermissionsPlaceholder() {
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier
-            .then(androidx.compose.ui.Modifier.fillMaxSize()),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         androidx.compose.foundation.layout.Column(
@@ -167,8 +167,7 @@ fun PermissionsPlaceholder() {
 @Composable
 fun ReportsPlaceholder() {
     androidx.compose.foundation.layout.Box(
-        modifier = Modifier
-            .then(androidx.compose.ui.Modifier.fillMaxSize()),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = androidx.compose.ui.Alignment.Center
     ) {
         androidx.compose.foundation.layout.Column(
