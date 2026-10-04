@@ -1,13 +1,17 @@
 package com.example.myapplication.presentation.ui.components
 
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.*
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
 
 data class BottomNavItem(
@@ -33,9 +37,9 @@ fun AppBottomNavigationBar(
     } else {
         listOf(
             BottomNavItem("Inicio", "🏠", "student_dashboard"),
-            BottomNavItem("Asistencia", "📋", "attendance"),
+            BottomNavItem("Materias", "📚", "subjects"),
+            BottomNavItem("Horario", "📅", "schedule"),
             BottomNavItem("Permisos", "📝", "permissions"),
-            BottomNavItem("Reportes", "📊", "reports"),
             BottomNavItem("Perfil", "👤", "profile")
         )
     }
@@ -43,26 +47,24 @@ fun AppBottomNavigationBar(
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp,
-        modifier = Modifier.height(80.dp)
+        modifier = Modifier.height(78.dp)
     ) {
         items.forEach { item ->
             val selected = currentRoute == item.route
             NavigationBarItem(
                 selected = selected,
                 onClick = { onNavigate(item.route) },
-                icon = {
-                    Text(text = item.icon, fontSize = 20.sp)
-                },
+                icon = { Text(text = item.icon, fontSize = 18.sp) },
                 label = {
                     Text(
                         text = item.label,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (selected) PrimaryColor else Color.Gray
+                        color = if (selected) PrimaryColor else MutedColor
                     )
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    indicatorColor = PrimaryColor.copy(alpha = 0.1f)
+                    indicatorColor = PrimaryColor.copy(alpha = 0.12f)
                 )
             )
         }

@@ -1,27 +1,60 @@
 package com.example.myapplication.presentation.ui.attendance
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.domain.model.AttendanceStatus
-import com.example.myapplication.domain.model.StudentAttendance
-import com.example.myapplication.presentation.theme.*
+import com.example.myapplication.presentation.theme.AusenteColor
+import com.example.myapplication.presentation.theme.BackgroundColor
+import com.example.myapplication.presentation.theme.FieldColor
+import com.example.myapplication.presentation.theme.GreenSoft
+import com.example.myapplication.presentation.theme.GreenText
+import com.example.myapplication.presentation.theme.InkColor
+import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.PresenteColor
+import com.example.myapplication.presentation.theme.PrimaryColor
+import com.example.myapplication.presentation.theme.RetardoColor
+import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.presentation.ui.design.PrimaryButton
+import com.example.myapplication.presentation.ui.design.RollRow
+import com.example.myapplication.presentation.ui.design.SampleData
+import com.example.myapplication.presentation.ui.design.TopBar
+import com.example.myapplication.presentation.ui.design.WhiteCard
 import com.example.myapplication.presentation.viewmodel.AttendanceViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -33,257 +66,206 @@ fun AttendanceScreen(
     onBack: () -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
+    var fallback by remember(grupoId) { mutableStateOf(SampleData.roll) }
+    var localSubmitted by remember(grupoId) { mutableStateOf(false) }
+    var groupFilter by remember { mutableStateOf("Todos") }
+    var started by remember(grupoId) { mutableStateOf(false) }
 
     LaunchedEffect(grupoId) {
+        started = true
         viewModel.loadStudents(grupoId)
     }
 
-    if (state.isSubmitted) {
-        Box(
-            modifier = Modifier.fillMaxSize().background(BackgroundColor),
-            contentAlignment = Alignment.Center
+    val usingApi = started && state.students.isNotEmpty()
+    val rows = if (usingApi) {
+        state.students.map {
+            RollRow(
+                id = it.studentId,
+                initials = it.studentName.split(" ").take(2).mapNotNull { part -> part.firstOrNull()?.uppercase() }.joinToString(""),
+                name = it.studentName,
+                matricula = it.matricula,
+                group = "Grupo",
+                status = it.status,
+                hasPermission = it.hasPermission
+            )
+        }
+    } else {
+        fallback
+    }
+    val query = state.searchQuery.trim().lowercase()
+    val visible = rows.filter { row ->
+        val matchesQuery = query.isBlank() || row.name.lowercase().contains(query) || row.matricula.lowercase().contains(query)
+        val matchesGroup = groupFilter == "Todos" || row.group.contains(groupFilter.removePrefix("Grupo ").trim(), ignoreCase = true) || row.group == "Grupo"
+        matchesQuery && matchesGroup
+    }
+    val registered = rows.count { it.status != null && it.status != AttendanceStatus.AUSENTE || it.hasPermission }
+    val submitted = state.isSubmitted || localSubmitted
+
+    if (submitted) {
+        Column(
+            modifier = Modifier.fillMaxSize().background(BackgroundColor).padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Card(
-                modifier = Modifier.padding(32.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier.padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(text = "✅", fontSize = 64.sp)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Asistencia Confirmada",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = PresenteColor
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "La asistencia ha sido registrada exitosamente.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Button(
-                        onClick = onBack,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor)
-                    ) {
-                        Text("Volver al Dashboard")
-                    }
-                }
-            }
+            Text("✓", color = PrimaryColor, fontSize = 56.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
+            Text("Lista enviada", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+            Text("La asistencia de $materia quedó registrada.", color = MutedColor)
+            Spacer(Modifier.height(20.dp))
+            PrimaryButton("Volver", onClick = onBack)
         }
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundColor)) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Header
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp),
-                colors = CardDefaults.cardColors(containerColor = PrimaryColor)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp)
-                ) {
-                    Text(
-                        text = "📋 Pasar Lista",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = materia,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Search
-                    OutlinedTextField(
-                        value = state.searchQuery,
-                        onValueChange = viewModel::onSearchQueryChange,
-                        placeholder = { Text("Buscar estudiante...", color = Color.White.copy(alpha = 0.6f)) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color.White.copy(alpha = 0.5f),
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.3f),
-                            cursorColor = Color.White
-                        )
-                    )
-                }
+    Column(Modifier.fillMaxSize().background(BackgroundColor)) {
+        TopBar(
+            title = materia.ifBlank { "Pase de lista" },
+            onBack = onBack,
+            action = "Enviar",
+            onAction = {
+                if (usingApi) viewModel.submitAttendance() else localSubmitted = true
             }
-
-            // Student list
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = PrimaryColor)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(viewModel.getFilteredStudents()) { student ->
-                        StudentAttendanceCard(
-                            student = student,
-                            onStatusChange = { status ->
-                                viewModel.updateStudentStatus(student.studentId, status)
-                            }
-                        )
-                    }
-                }
+        )
+        if (state.isLoading && !usingApi) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = PrimaryColor)
             }
-
-            // Bottom bar
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "${state.registeredCount} / ${state.totalCount} estudiantes registrados",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.Gray,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    LinearProgressIndicator(
-                        progress = {
-                            if (state.totalCount > 0) state.registeredCount.toFloat() / state.totalCount
-                            else 0f
-                        },
-                        modifier = Modifier.fillMaxWidth().height(6.dp),
-                        color = PrimaryColor,
-                        trackColor = Color.LightGray.copy(alpha = 0.3f),
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Button(
-                        onClick = viewModel::submitAttendance,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = RoundedCornerShape(14.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryColor),
-                        enabled = !state.isSubmitting
-                    ) {
-                        if (state.isSubmitting) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text(
-                                text = "Confirmar Asistencia",
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 15.sp
-                            )
-                        }
-                    }
-                }
-            }
+            return
         }
-    }
-}
-
-@Composable
-fun StudentAttendanceCard(
-    student: StudentAttendance,
-    onStatusChange: (AttendanceStatus) -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 4.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = student.studentName,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
+            item {
+                Text("Sesión de hoy", color = MutedColor, fontSize = 13.sp)
+                Text("Aula 402  •  10:00 AM - 12:00 PM", color = InkColor, fontWeight = FontWeight.SemiBold)
+            }
+            item {
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = viewModel::onSearchQueryChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Buscar nombre o ID de estudiante...", color = MutedColor, fontSize = 14.sp) },
+                    leadingIcon = { Text("🔍") },
+                    singleLine = true,
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = PrimaryColor,
+                        unfocusedBorderColor = Color.Transparent,
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
                     )
+                )
+            }
+            item {
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("Todos los Grupos", "Grupo A", "Grupo B").forEach { label ->
+                        val key = if (label.startsWith("Todos")) "Todos" else label
+                        val selected = groupFilter == key
+                        Text(
+                            label,
+                            color = if (selected) Color.White else InkColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(50))
+                                .background(if (selected) PrimaryColor else Color.White)
+                                .border(1.dp, if (selected) PrimaryColor else FieldColor, RoundedCornerShape(50))
+                                .clickable { groupFilter = key }
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Lista de Estudiantes\n(${rows.size})", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                     Text(
-                        text = student.matricula,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray
+                        "Marcar todos\npresentes",
+                        color = PrimaryColor,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp,
+                        modifier = Modifier.clickable {
+                            if (usingApi) {
+                                viewModel.markAllPresent()
+                            } else {
+                                fallback = fallback.map { row ->
+                                    if (row.hasPermission) row else row.copy(status = AttendanceStatus.PRESENTE)
+                                }
+                            }
+                        }
                     )
                 }
             }
-
-            if (student.hasPermission) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Card(
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = PermisoColor.copy(alpha = 0.1f))
-                ) {
-                    Text(
-                        text = "📋 Permiso Autorizado",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        color = PermisoColor,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium
+            items(visible, key = { it.id }) { row ->
+                StudentCard(row) { status ->
+                    if (usingApi) {
+                        viewModel.updateStudentStatus(row.id, status)
+                    } else {
+                        fallback = fallback.map { if (it.id == row.id) it.copy(status = status, hasPermission = false) else it }
+                    }
+                }
+            }
+            item {
+                WhiteCard {
+                    Text("Progreso de Lista", color = MutedColor, fontSize = 12.sp)
+                    Text("$registered / ${rows.size} Estudiantes", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { if (rows.isEmpty()) 0f else registered / rows.size.toFloat() },
+                        modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(8.dp)),
+                        color = PrimaryColor,
+                        trackColor = SoftPurple
                     )
                 }
-            } else {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    AttendanceButton(
-                        text = "Presente",
-                        selected = student.status == AttendanceStatus.PRESENTE,
-                        color = PresenteColor,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onStatusChange(AttendanceStatus.PRESENTE) }
-                    )
-                    AttendanceButton(
-                        text = "Retardo",
-                        selected = student.status == AttendanceStatus.RETARDO,
-                        color = RetardoColor,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onStatusChange(AttendanceStatus.RETARDO) }
-                    )
-                    AttendanceButton(
-                        text = "Ausente",
-                        selected = student.status == AttendanceStatus.AUSENTE,
-                        color = AusenteColor,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onStatusChange(AttendanceStatus.AUSENTE) }
-                    )
+                Spacer(Modifier.height(8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun StudentCard(row: RollRow, onStatus: (AttendanceStatus) -> Unit) {
+    WhiteCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .clip(CircleShape)
+                    .background(SoftPurple)
+                    .padding(horizontal = 10.dp, vertical = 12.dp)
+            ) {
+                Text(row.initials, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(row.name, color = InkColor, fontWeight = FontWeight.Bold)
+                Text("ID: ${row.matricula} • ${row.group}", color = MutedColor, fontSize = 12.sp)
+            }
+            if (row.hasPermission) {
+                Text(
+                    "PERMISO\nAUTORIZADO",
+                    color = PrimaryColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 10.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SoftPurple)
+                        .padding(8.dp)
+                )
+            }
+        }
+        if (!row.hasPermission) {
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                StatusChip("Presente", row.status == AttendanceStatus.PRESENTE, PresenteColor, GreenSoft, Modifier.weight(1f)) {
+                    onStatus(AttendanceStatus.PRESENTE)
+                }
+                StatusChip("Retardo", row.status == AttendanceStatus.RETARDO, Color.White, RetardoColor, Modifier.weight(1f), filled = true) {
+                    onStatus(AttendanceStatus.RETARDO)
+                }
+                StatusChip("Ausente", row.status == AttendanceStatus.AUSENTE, Color.White, AusenteColor, Modifier.weight(1f), filled = true) {
+                    onStatus(AttendanceStatus.AUSENTE)
                 }
             }
         }
@@ -291,30 +273,25 @@ fun StudentAttendanceCard(
 }
 
 @Composable
-fun AttendanceButton(
-    text: String,
+private fun StatusChip(
+    label: String,
     selected: Boolean,
-    color: Color,
-    modifier: Modifier = Modifier,
+    content: Color,
+    fill: Color,
+    modifier: Modifier,
+    filled: Boolean = false,
     onClick: () -> Unit
 ) {
-    val bgColor by animateColorAsState(
-        targetValue = if (selected) color else Color.LightGray.copy(alpha = 0.2f)
-    )
-    val textColor = if (selected) Color.White else Color.DarkGray
-
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(36.dp),
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = bgColor),
-        contentPadding = PaddingValues(horizontal = 4.dp)
+    val bg = if (!selected) FieldColor else if (filled) fill else GreenSoft
+    val fg = if (!selected) MutedColor else if (filled) Color.White else content
+    Box(
+        modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(bg)
+            .clickable(onClick = onClick)
+            .padding(vertical = 10.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Medium,
-            color = textColor
-        )
+        Text(label, color = fg, fontWeight = FontWeight.Bold, fontSize = 13.sp)
     }
 }
