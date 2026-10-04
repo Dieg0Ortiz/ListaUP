@@ -17,10 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +43,7 @@ import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.presentation.ui.design.AppDialog
 import com.example.myapplication.presentation.ui.design.AvatarCircle
 import com.example.myapplication.presentation.ui.design.Pill
 import com.example.myapplication.presentation.ui.design.PrimaryButton
@@ -67,11 +66,13 @@ fun SubjectDetailScreen(
     val asistencias = (percent * sesiones / 100).coerceAtMost(sesiones)
     val retardos = if (percent < 90) 2 else 0
 
+    Box(Modifier.fillMaxSize().background(BackgroundColor)) {
+    Column(Modifier.fillMaxSize()) {
+    TopBar("Detalle de Materia", onBack = onBack)
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
+        modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
-        item { TopBar("Detalle de Materia", onBack = onBack) }
         item {
             Column(
                 modifier = Modifier
@@ -161,31 +162,27 @@ fun SubjectDetailScreen(
             }
         }
     }
-
+    }
     if (messageOpen) {
-        AlertDialog(
-            onDismissRequest = { messageOpen = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (message.isNotBlank()) {
-                        sent = true
-                        messageOpen = false
-                    }
-                }) { Text("Enviar", color = PrimaryColor, fontWeight = FontWeight.Bold) }
+        AppDialog(
+            title = "Mensaje para $docente",
+            body = "",
+            confirm = "Enviar",
+            onConfirm = {
+                if (message.isNotBlank()) {
+                    sent = true
+                    messageOpen = false
+                }
             },
-            dismissButton = {
-                TextButton(onClick = { messageOpen = false }) { Text("Cancelar", color = MutedColor) }
-            },
-            title = { Text("Mensaje para $docente") },
-            text = {
-                OutlinedTextField(
-                    value = message,
-                    onValueChange = { message = it },
-                    placeholder = { Text("Escribe tu mensaje") }
-                )
-            },
-            containerColor = Color.White
-        )
+            onDismiss = { messageOpen = false }
+        ) {
+            OutlinedTextField(
+                value = message,
+                onValueChange = { message = it },
+                placeholder = { Text("Escribe tu mensaje") }
+            )
+        }
+    }
     }
 }
 

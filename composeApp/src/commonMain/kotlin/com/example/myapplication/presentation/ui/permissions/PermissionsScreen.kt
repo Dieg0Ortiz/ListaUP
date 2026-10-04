@@ -100,11 +100,12 @@ private fun StudentPermissionForm() {
     val starts = listOf("08:00 AM", "09:00 AM", "10:00 AM", "12:00 PM")
     val ends = listOf("12:00 PM", "02:00 PM", "05:00 PM", "06:00 PM")
 
+    Column(Modifier.fillMaxSize().background(BackgroundColor)) {
+    TopBar("Solicitar Permiso")
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
+        modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(bottom = 28.dp)
     ) {
-        item { TopBar("Solicitar Permiso") }
         item {
             Column(Modifier.padding(horizontal = 24.dp)) {
                 StepItem("Solicitado", "Etapa actual", step >= 0, step == 0)
@@ -208,6 +209,7 @@ private fun StudentPermissionForm() {
                 fontSize = 12.sp
             )
         }
+    }
     }
 }
 

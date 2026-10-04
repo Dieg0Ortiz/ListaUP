@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -69,14 +68,11 @@ fun AttendanceScreen(
     var fallback by remember(grupoId) { mutableStateOf(SampleData.roll) }
     var localSubmitted by remember(grupoId) { mutableStateOf(false) }
     var groupFilter by remember { mutableStateOf("Todos") }
-    var started by remember(grupoId) { mutableStateOf(false) }
-
     LaunchedEffect(grupoId) {
-        started = true
         viewModel.loadStudents(grupoId)
     }
 
-    val usingApi = started && state.students.isNotEmpty()
+    val usingApi = state.students.isNotEmpty()
     val rows = if (usingApi) {
         state.students.map {
             RollRow(
@@ -126,12 +122,6 @@ fun AttendanceScreen(
                 if (usingApi) viewModel.submitAttendance() else localSubmitted = true
             }
         )
-        if (state.isLoading && !usingApi) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = PrimaryColor)
-            }
-            return
-        }
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 4.dp),

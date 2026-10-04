@@ -62,11 +62,12 @@ fun PermissionDetailScreen(
 ) {
     var decision by remember(studentName) { mutableStateOf(status) }
 
+    Column(Modifier.fillMaxSize().background(BackgroundColor)) {
+    TopBar("Detalles de la Solicitud", onBack = onBack)
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
+        modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(bottom = 28.dp)
     ) {
-        item { TopBar("Detalles de la Solicitud", onBack = onBack) }
         item {
             Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                 AvatarCircle(studentName.take(1).ifBlank { "E" })
@@ -160,6 +161,7 @@ fun PermissionDetailScreen(
                 }
             }
         }
+    }
     }
 }
 

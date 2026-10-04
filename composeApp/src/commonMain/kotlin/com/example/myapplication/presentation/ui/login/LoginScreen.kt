@@ -18,12 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,6 +46,7 @@ import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.PrimaryLight
+import com.example.myapplication.presentation.ui.design.AppDialog
 import com.example.myapplication.presentation.ui.design.PrimaryButton
 import com.example.myapplication.presentation.viewmodel.LoginViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -76,10 +75,10 @@ fun LoginScreen(
         unfocusedTextColor = InkColor
     )
 
+    Box(Modifier.fillMaxSize().background(Color.White)) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -195,19 +194,15 @@ fun LoginScreen(
         }
         Spacer(Modifier.height(32.dp))
     }
-
     if (dialog != null) {
-        AlertDialog(
-            onDismissRequest = { dialog = null },
-            confirmButton = {
-                TextButton(onClick = { dialog = null }) {
-                    Text("Entendido", color = PrimaryColor, fontWeight = FontWeight.Bold)
-                }
-            },
-            title = { Text("ListaUP", fontWeight = FontWeight.Bold) },
-            text = { Text(dialog ?: "") },
-            containerColor = Color.White
+        AppDialog(
+            title = "ListaUP",
+            body = dialog ?: "",
+            confirm = "Entendido",
+            onConfirm = { dialog = null },
+            onDismiss = { dialog = null }
         )
+    }
     }
 }
 

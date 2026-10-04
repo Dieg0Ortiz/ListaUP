@@ -16,9 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,6 +40,7 @@ import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.presentation.ui.design.AppDialog
 import com.example.myapplication.presentation.ui.design.Pill
 import com.example.myapplication.presentation.ui.design.SampleData
 import com.example.myapplication.presentation.ui.design.WeekClass
@@ -54,6 +53,7 @@ fun ScheduleScreen(isProfessor: Boolean) {
     var showAdd by remember { mutableIntStateOf(0) }
     val classes = SampleData.weekClasses
 
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundColor),
         contentPadding = PaddingValues(bottom = 24.dp)
@@ -112,17 +112,15 @@ fun ScheduleScreen(isProfessor: Boolean) {
             }
         }
     }
-
     if (showAdd == 1) {
-        AlertDialog(
-            onDismissRequest = { showAdd = 0 },
-            confirmButton = {
-                TextButton(onClick = { showAdd = 0 }) { Text("Cerrar", color = PrimaryColor, fontWeight = FontWeight.Bold) }
-            },
-            title = { Text("Semestre completo") },
-            text = { Text("El horario mostrado corresponde a la semana del 16 al 20 de octubre. El resto del semestre conserva estos mismos bloques.") },
-            containerColor = Color.White
+        AppDialog(
+            title = "Semestre completo",
+            body = "El horario mostrado corresponde a la semana del 16 al 20 de octubre. El resto del semestre conserva estos mismos bloques.",
+            confirm = "Cerrar",
+            onConfirm = { showAdd = 0 },
+            onDismiss = { showAdd = 0 }
         )
+    }
     }
 }
 

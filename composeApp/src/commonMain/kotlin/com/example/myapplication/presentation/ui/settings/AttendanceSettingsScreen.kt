@@ -64,11 +64,12 @@ fun AttendanceSettingsScreen(onBack: () -> Unit) {
     var reminders by remember { mutableStateOf(true) }
     var saved by remember { mutableStateOf(false) }
 
+    Column(Modifier.fillMaxSize().background(BackgroundColor)) {
+    TopBar("Ajustes de Asistencia", onBack = onBack)
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
+        modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(bottom = 28.dp)
     ) {
-        item { TopBar("Ajustes de Asistencia", onBack = onBack) }
         item {
             Text("Porcentajes de Umbral", modifier = Modifier.padding(horizontal = 20.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp, color = InkColor)
             Text(
@@ -176,6 +177,7 @@ fun AttendanceSettingsScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
+    }
     }
 }
 

@@ -239,6 +239,51 @@ fun TopBar(
 }
 
 @Composable
+fun AppDialog(
+    title: String,
+    body: String,
+    confirm: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    content: @Composable () -> Unit = {}
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0x66000000))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(24.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(Color.White)
+                .clickable { }
+                .padding(20.dp)
+        ) {
+            Text(title, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Spacer(Modifier.height(8.dp))
+            if (body.isNotBlank()) {
+                Text(body, color = MutedColor, fontSize = 14.sp)
+                Spacer(Modifier.height(12.dp))
+            }
+            content()
+            Spacer(Modifier.height(8.dp))
+            Text(
+                confirm,
+                color = PrimaryColor,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .align(Alignment.End)
+                    .clickable(onClick = onConfirm)
+                    .padding(8.dp)
+            )
+        }
+    }
+}
+
+@Composable
 fun InfoLine(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),

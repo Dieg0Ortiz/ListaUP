@@ -80,7 +80,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(16.dp))
             InfoRow("Correo", user?.email ?: "No disponible")
             if (!professor) InfoRow("Matrícula", user?.matricula ?: "No disponible")
-            if (professor && user != null) InfoRow("ID Docente", user.docenteId.ifBlank { "No disponible" })
+            if (professor) InfoRow("ID Docente", user.docenteId.ifBlank { "No disponible" })
             InfoRow("Rol", if (professor) "Profesor" else "Estudiante")
         }
         if (professor) {

@@ -40,13 +40,12 @@ import com.example.myapplication.presentation.ui.design.TopBar
 @Composable
 fun DocumentPreviewScreen(onBack: () -> Unit) {
     var downloaded by remember { mutableStateOf(false) }
+    Column(Modifier.fillMaxSize().background(BackgroundColor)) {
+    TopBar("Vista Previa del Documento", onBack = onBack, action = "↑", onAction = { downloaded = true })
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
+        modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
-        item {
-            TopBar("Vista Previa del Documento", onBack = onBack, action = "↑", onAction = { downloaded = true })
-        }
         item {
             Column(
                 modifier = Modifier
@@ -136,5 +135,6 @@ fun DocumentPreviewScreen(onBack: () -> Unit) {
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
+    }
     }
 }
