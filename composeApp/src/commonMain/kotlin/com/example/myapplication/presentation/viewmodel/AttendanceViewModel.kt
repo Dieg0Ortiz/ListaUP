@@ -70,6 +70,16 @@ class AttendanceViewModel(
         _uiState.value = _uiState.value.copy(searchQuery = query)
     }
 
+    fun markAllPresent() {
+        val updated = _uiState.value.students.map { student ->
+            if (student.hasPermission) student else student.copy(status = AttendanceStatus.PRESENTE)
+        }
+        _uiState.value = _uiState.value.copy(
+            students = updated,
+            registeredCount = updated.count { it.status != AttendanceStatus.AUSENTE }
+        )
+    }
+
     fun getFilteredStudents(): List<StudentAttendance> {
         val query = _uiState.value.searchQuery.lowercase()
         if (query.isBlank()) return _uiState.value.students
