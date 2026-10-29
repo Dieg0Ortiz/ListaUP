@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,8 +34,8 @@ import com.example.myapplication.presentation.theme.BackgroundColor
 import com.example.myapplication.presentation.theme.GreenText
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
@@ -55,7 +54,9 @@ fun ProfessorDashboardScreen(
     onTakeAttendance: (String, String) -> Unit,
     onOpenSchedule: () -> Unit,
     onOpenAlerts: () -> Unit,
-    onOpenNotifications: () -> Unit
+    onOpenNotifications: () -> Unit,
+    onOpenPermissions: () -> Unit = {},
+    onOpenReports: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
     val classes = state.todayClasses.map {
@@ -89,14 +90,14 @@ fun ProfessorDashboardScreen(
                     Text("¡Hola, Prof. $name!", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
                 Box(Modifier.clickable(onClick = onOpenNotifications).padding(8.dp)) {
-                    Text("🔔", fontSize = 22.sp)
                     Box(
                         Modifier
-                            .align(Alignment.TopEnd)
-                            .size(8.dp)
+                            .size(10.dp)
                             .clip(CircleShape)
-                            .background(RoseText)
+                            .background(PrimaryColor)
+                            .align(Alignment.TopEnd)
                     )
+                    Text("Avisos", color = PrimaryColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
         }
@@ -105,8 +106,8 @@ fun ProfessorDashboardScreen(
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Brush.linearGradient(listOf(PrimaryColor, PrimaryLight)))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(HeroColor)
                     .padding(20.dp)
             ) {
                 Column {
@@ -115,7 +116,7 @@ fun ProfessorDashboardScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("$percent%", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 40.sp)
                         Spacer(Modifier.width(12.dp))
-                        Pill("↗ +3%", Color.White.copy(alpha = 0.2f), Color.White)
+                        Pill("+3%", PrimaryColor, Color.White)
                     }
                     Spacer(Modifier.height(16.dp))
                     WeekBars()
@@ -139,9 +140,7 @@ fun ProfessorDashboardScreen(
                 Modifier.padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("⚠", color = RoseText, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(6.dp))
-                Text("Alertas Críticas", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text("Alertas críticas", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }
             Spacer(Modifier.height(12.dp))
             WhiteCard(
@@ -155,10 +154,26 @@ fun ProfessorDashboardScreen(
                         Text("Carlos Mendoza", fontWeight = FontWeight.Bold, color = InkColor)
                         Text("23% Inasistencias (Límite 20%)", color = RoseText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
                     }
-                    Text("CONTACTAR", color = RoseText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text("Contactar", color = PrimaryColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
                 }
             }
+            Spacer(Modifier.height(16.dp))
+            Row(
+                Modifier.padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Shortcut("Permisos", "Pendientes", onOpenPermissions, Modifier.weight(1f))
+                Shortcut("Reportes", "Mensuales", onOpenReports, Modifier.weight(1f))
+            }
         }
+    }
+}
+
+@Composable
+private fun Shortcut(title: String, subtitle: String, onClick: () -> Unit, modifier: Modifier) {
+    WhiteCard(modifier = modifier, onClick = onClick) {
+        Text(title, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+        Text(subtitle, color = MutedColor, fontSize = 12.sp)
     }
 }
 
@@ -176,7 +191,7 @@ private fun WeekBars() {
                     .weight(1f)
                     .fillMaxHeight(fraction)
                     .clip(RoundedCornerShape(6.dp))
-                    .background(if (index == 4) Color.White else Color.White.copy(alpha = 0.35f))
+                    .background(if (index == 4) PrimaryColor else Color.White.copy(alpha = 0.22f))
             )
         }
     }
@@ -200,35 +215,32 @@ private fun ClassCard(session: DashClass, onTake: () -> Unit) {
                 if (session.live) {
                     Box(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(14.dp))
+                            .clip(RoundedCornerShape(12.dp))
                             .background(PrimaryColor)
                             .clickable(onClick = onTake)
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .padding(horizontal = 16.dp, vertical = 10.dp)
                     ) {
-                        Text("👤  Pasar Lista", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Pasar lista", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
                 } else {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("🔒", fontSize = 12.sp)
-                        Spacer(Modifier.width(6.dp))
-                        Text("Próximamente", color = MutedColor, fontWeight = FontWeight.SemiBold)
-                    }
+                    Text("Próximamente", color = MutedColor, fontWeight = FontWeight.Medium, fontSize = 13.sp)
                 }
             }
             Spacer(Modifier.width(12.dp))
             Box(
                 modifier = Modifier
-                    .size(92.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(
-                        Brush.linearGradient(
-                            if (session.live) listOf(PrimaryLight, PrimaryColor)
-                            else listOf(Color(0xFFEDE7F6), Color(0xFFD1C4E9))
-                        )
-                    ),
-                contentAlignment = Alignment.Center
+                    .size(84.dp)
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(if (session.live) HeroColor else Color(0xFFE7E4EC))
             ) {
-                Text(if (session.live) "◆" else "△", color = Color.White, fontSize = 28.sp)
+                Box(
+                    Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(10.dp)
+                        .size(width = 36.dp, height = 8.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(if (session.live) PrimaryColor else Color(0xFFC8C4D0))
+                )
             }
         }
     }

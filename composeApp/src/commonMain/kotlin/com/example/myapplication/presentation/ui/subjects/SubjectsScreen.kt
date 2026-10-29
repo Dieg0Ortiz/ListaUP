@@ -86,12 +86,13 @@ fun SubjectsScreen(
     ) {
         item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.clip(RoundedCornerShape(16.dp)).background(PrimaryColor).padding(10.dp)
-                ) { Text("🎓", color = Color.White) }
-                Spacer(Modifier.width(10.dp))
-                Text("Mis Materias", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 22.sp, color = InkColor)
-                Text("🔔", modifier = Modifier.clickable(onClick = onOpenNotifications), fontSize = 20.sp)
+                Text("Mis materias", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 22.sp, color = InkColor)
+                Text(
+                    "Avisos",
+                    color = PrimaryColor,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(onClick = onOpenNotifications)
+                )
             }
         }
         item {
@@ -99,8 +100,7 @@ fun SubjectsScreen(
                 value = query,
                 onValueChange = { query = it },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar materias o profesores...", color = MutedColor) },
-                leadingIcon = { Text("🔍") },
+                placeholder = { Text("Buscar materia o profesor", color = MutedColor) },
                 singleLine = true,
                 shape = RoundedCornerShape(16.dp),
                 colors = OutlinedTextFieldDefaults.colors(

@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,8 +37,8 @@ import com.example.myapplication.presentation.theme.GreenSoft
 import com.example.myapplication.presentation.theme.GreenText
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
@@ -78,8 +77,8 @@ fun SubjectDetailScreen(
                 modifier = Modifier
                     .padding(horizontal = 20.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Brush.linearGradient(listOf(PrimaryColor, PrimaryLight)))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(HeroColor)
                     .padding(20.dp)
             ) {
                 Pill("INGENIERÍA DE SOFTWARE", Color.White.copy(alpha = 0.18f), Color.White)
@@ -109,8 +108,8 @@ fun SubjectDetailScreen(
         item {
             Spacer(Modifier.height(12.dp))
             Row(Modifier.padding(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                MiniStat("✓", "ASISTENCIAS", asistencias.toString(), Modifier.weight(1f))
-                MiniStat("⏱", "RETARDOS", retardos.toString(), Modifier.weight(1f))
+                MiniStat("Asistencias", asistencias.toString(), Modifier.weight(1f))
+                MiniStat("Retardos", retardos.toString(), Modifier.weight(1f))
             }
         }
         if (percent < 80) {
@@ -124,7 +123,7 @@ fun SubjectDetailScreen(
                         .background(RoseSoft)
                         .padding(16.dp)
                 ) {
-                    Text("⚠  Alerta de Inasistencias", color = RoseText, fontWeight = FontWeight.Bold)
+                    Text("Alerta de inasistencias", color = RoseText, fontWeight = FontWeight.Bold)
                     Text(
                         "Estás a 1 falta de perder el derecho a examen final. Se recomienda precaución.",
                         color = InkColor,
@@ -155,8 +154,8 @@ fun SubjectDetailScreen(
                     }
                 }
                 Spacer(Modifier.height(8.dp))
-                Text("✉  contacto@institucional.edu.mx", color = MutedColor, fontSize = 13.sp)
-                Text("📍  $aula", color = MutedColor, fontSize = 13.sp)
+                Text("contacto@institucional.edu.mx", color = MutedColor, fontSize = 13.sp)
+                Text(aula, color = MutedColor, fontSize = 13.sp)
                 Spacer(Modifier.height(12.dp))
                 PrimaryButton(if (sent) "Mensaje enviado" else "ENVIAR MENSAJE", onClick = { messageOpen = true }, enabled = !sent)
             }
@@ -195,10 +194,9 @@ private fun Stat(value: String, label: String) {
 }
 
 @Composable
-private fun MiniStat(icon: String, label: String, value: String, modifier: Modifier) {
+private fun MiniStat(label: String, value: String, modifier: Modifier) {
     WhiteCard(modifier) {
-        Text(icon, color = PrimaryColor)
-        Text(label, color = MutedColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        Text(label, color = MutedColor, fontSize = 12.sp, fontWeight = FontWeight.Medium)
         Text(value, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 22.sp)
     }
 }
@@ -207,10 +205,7 @@ private fun MiniStat(icon: String, label: String, value: String, modifier: Modif
 private fun HistoryRow(date: String, topic: String, status: String, bg: Color, fg: Color) {
     WhiteCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(36.dp).clip(CircleShape).background(SoftPurple), contentAlignment = Alignment.Center) {
-                Text("📅", fontSize = 14.sp)
-            }
-            Spacer(Modifier.width(10.dp))
+            Spacer(Modifier.width(2.dp))
             Column(Modifier.weight(1f)) {
                 Text(date, fontWeight = FontWeight.Bold, color = InkColor, fontSize = 14.sp)
                 Text(topic, color = MutedColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)

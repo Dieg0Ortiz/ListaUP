@@ -115,28 +115,28 @@ object SampleData {
     )
 
     val studentNotices = listOf(
-        StudentNotice("n1", "Asistencia Registrada", "Registrada para Matemáticas Avanzadas - Clase. Estuviste presente.", "hace 2m", "Hoy", "📅", NoticeTint.Purple, true),
-        StudentNotice("n2", "Actualización de Permiso", "Tu solicitud de permiso médico ha sido aprobada por el Director.", "hace 1h", "Hoy", "✓", NoticeTint.Green, true),
+        StudentNotice("n1", "Asistencia registrada", "Matemáticas Avanzadas. Quedaste como presente.", "hace 2m", "Hoy", "AS", NoticeTint.Purple, true),
+        StudentNotice("n2", "Permiso actualizado", "Tu permiso médico fue aprobado por dirección.", "hace 1h", "Hoy", "OK", NoticeTint.Green, true),
         StudentNotice("n3", "Aviso de Baja Asistencia", "Aviso: La asistencia en Estructuras de Datos es del 76%.", "hace 1d", "Ayer", "!", NoticeTint.Amber, false),
-        StudentNotice("n4", "Asistencia Registrada", "Registrada para Sistemas de Bases de Datos - Lab. Estuviste presente.", "hace 1d", "Ayer", "📅", NoticeTint.Purple, false),
-        StudentNotice("n5", "Permiso Denegado", "El permiso para Visita Industrial fue rechazado por falta de documentos.", "hace 3d", "Esta semana", "✕", NoticeTint.Rose, false)
+        StudentNotice("n4", "Asistencia registrada", "Bases de Datos, laboratorio. Quedaste como presente.", "hace 1d", "Ayer", "AS", NoticeTint.Purple, false),
+        StudentNotice("n5", "Permiso denegado", "La visita industrial se rechazó por falta de documento.", "hace 3d", "Esta semana", "NO", NoticeTint.Rose, false)
     )
 
     val permissionRequests = listOf(
         PermissionRequestCard(
             "David Smith", "20230112", "Ing. de Sistemas", "Licencia Médica",
             "Licencia Médica: 24 Oct - 26 Oct. Adjunta certificado clínico.",
-            "Hace 3h", "🏥", "24 Oct, 2023", "26 Oct, 2023", "3 Días"
+            "Hace 3h", "MD", "24 Oct, 2023", "26 Oct, 2023", "3 Días"
         ),
         PermissionRequestCard(
             "Sarah Wilson", "20230880", "Ing. Industrial", "Evento Deportivo",
             "Participación en Evento Deportivo (Selección Nacional).",
-            "Ayer", "🏆", "18 Oct, 2023", "19 Oct, 2023", "2 Días"
+            "Ayer", "DP", "18 Oct, 2023", "19 Oct, 2023", "2 Días"
         ),
         PermissionRequestCard(
             "Julian Rivera", "20230541", "Ing. de Sistemas", "Permiso Médico",
             "Procedimiento quirúrgico menor. Adjunta certificado.",
-            "Hace 5h", "🩺", "24 Oct, 2023", "26 Oct, 2023", "3 Días"
+            "Hace 5h", "MD", "24 Oct, 2023", "26 Oct, 2023", "3 Días"
         )
     )
 }

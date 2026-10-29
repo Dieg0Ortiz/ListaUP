@@ -21,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -30,8 +29,8 @@ import com.example.myapplication.domain.model.UserRole
 import com.example.myapplication.presentation.theme.BackgroundColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.ui.design.AvatarCircle
 import com.example.myapplication.presentation.ui.design.PrimaryButton
 import com.example.myapplication.presentation.ui.design.WhiteCard
@@ -59,10 +58,11 @@ fun ProfileScreen(
         item {
             Column(
                 modifier = Modifier
+                    .padding(horizontal = 20.dp, vertical = 16.dp)
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp))
-                    .background(Brush.linearGradient(listOf(PrimaryColor, PrimaryLight)))
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(HeroColor)
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AvatarCircle(
@@ -88,8 +88,6 @@ fun ProfileScreen(
                 Spacer(Modifier.height(8.dp))
                 WhiteCard(modifier = Modifier.padding(horizontal = 20.dp), onClick = onOpenSettings) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("⚙", fontSize = 20.sp)
-                        Spacer(Modifier.width(10.dp))
                         Column(Modifier.weight(1f)) {
                             Text("Ajustes de Asistencia", color = InkColor, fontWeight = FontWeight.Bold)
                             Text("Umbrales, alertas y recordatorios", color = MutedColor, fontSize = 12.sp)

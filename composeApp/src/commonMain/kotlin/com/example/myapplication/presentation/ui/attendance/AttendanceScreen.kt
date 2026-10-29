@@ -103,7 +103,7 @@ fun AttendanceScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("✓", color = PrimaryColor, fontSize = 56.sp, fontWeight = FontWeight.Bold)
+            Text("Listo", color = PrimaryColor, fontSize = 28.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.height(12.dp))
             Text("Lista enviada", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 24.sp)
             Text("La asistencia de $materia quedó registrada.", color = MutedColor)
@@ -136,8 +136,7 @@ fun AttendanceScreen(
                     value = state.searchQuery,
                     onValueChange = viewModel::onSearchQueryChange,
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text("Buscar nombre o ID de estudiante...", color = MutedColor, fontSize = 14.sp) },
-                    leadingIcon = { Text("🔍") },
+                    placeholder = { Text("Buscar nombre o matrícula", color = MutedColor, fontSize = 14.sp) },
                     singleLine = true,
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(

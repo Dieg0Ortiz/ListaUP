@@ -22,7 +22,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,8 +30,8 @@ import androidx.compose.ui.unit.sp
 import com.example.myapplication.presentation.theme.BackgroundColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.SoftPurple
 import com.example.myapplication.presentation.ui.design.PrimaryButton
 import com.example.myapplication.presentation.ui.design.TopBar
@@ -56,7 +55,7 @@ fun DocumentPreviewScreen(onBack: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Brush.linearGradient(listOf(PrimaryColor, PrimaryLight)))
+                        .background(HeroColor)
                         .padding(18.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -65,7 +64,7 @@ fun DocumentPreviewScreen(onBack: () -> Unit) {
                             contentAlignment = Alignment.Center
                         ) { Text("U", color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 20.sp) }
                         Column(Modifier.padding(start = 10.dp)) {
-                            Text("UNIVERSIDAD TÉCNICA DEL ESTADO", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("UNIVERSIDAD POLITÉCNICA DE CHIAPAS", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             Text("Departamento de Ingeniería", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
                         }
                     }

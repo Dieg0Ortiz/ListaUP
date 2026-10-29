@@ -45,7 +45,6 @@ import com.example.myapplication.presentation.theme.FieldColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.ui.design.AppDialog
 import com.example.myapplication.presentation.ui.design.PrimaryButton
 import com.example.myapplication.presentation.viewmodel.LoginViewModel
@@ -113,14 +112,12 @@ fun LoginScreen(
         ) {
             RoleChip(
                 label = "Alumno",
-                icon = "🎓",
                 selected = !state.asProfessor,
                 modifier = Modifier.weight(1f),
                 onClick = { viewModel.setProfessorMode(false) }
             )
             RoleChip(
-                label = "Docente/Personal",
-                icon = "💼",
+                label = "Docente",
                 selected = state.asProfessor,
                 modifier = Modifier.weight(1f),
                 onClick = { viewModel.setProfessorMode(true) }
@@ -132,8 +129,7 @@ fun LoginScreen(
             value = state.credential,
             onValueChange = viewModel::onCredentialChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Correo Institucional", color = MutedColor) },
-            leadingIcon = { Text("✉", color = MutedColor) },
+            placeholder = { Text("Correo institucional", color = MutedColor) },
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = fieldColors,
@@ -145,10 +141,12 @@ fun LoginScreen(
             onValueChange = viewModel::onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Contraseña", color = MutedColor) },
-            leadingIcon = { Text("🔒", color = MutedColor) },
             trailingIcon = {
                 Text(
-                    if (state.passwordVisible) "🙈" else "👁",
+                    if (state.passwordVisible) "Ocultar" else "Ver",
+                    color = PrimaryColor,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { viewModel.togglePasswordVisibility() }.padding(8.dp)
                 )
             },
@@ -179,7 +177,7 @@ fun LoginScreen(
         if (state.isLoading) {
             CircularProgressIndicator(color = PrimaryColor)
         } else {
-            PrimaryButton("Iniciar Sesión  →", onClick = { viewModel.login() })
+            PrimaryButton("Iniciar sesión", onClick = { viewModel.login() })
         }
         Spacer(Modifier.height(36.dp))
         Row(
@@ -188,9 +186,7 @@ fun LoginScreen(
                 dialog = "Soporte IT está disponible de lunes a viernes, 8:00 a 16:00. Correo: soporte.it@institucional.edu.mx"
             }
         ) {
-            Text("🎧", fontSize = 16.sp)
-            Spacer(Modifier.width(8.dp))
-            Text("Contactar Soporte IT", color = MutedColor, fontWeight = FontWeight.Medium)
+            Text("Contactar soporte", color = MutedColor, fontWeight = FontWeight.Medium)
         }
         Spacer(Modifier.height(32.dp))
     }
@@ -209,27 +205,23 @@ fun LoginScreen(
 @Composable
 private fun RoleChip(
     label: String,
-    icon: String,
     selected: Boolean,
     modifier: Modifier,
     onClick: () -> Unit
 ) {
-    Row(
+    Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(if (selected) Color.White else Color.Transparent)
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) PrimaryColor else Color.Transparent)
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
     ) {
-        Text(icon, fontSize = 14.sp)
-        Spacer(Modifier.width(6.dp))
         Text(
             label,
-            color = if (selected) PrimaryLight else MutedColor,
-            fontWeight = FontWeight.Bold,
-            fontSize = 13.sp
+            color = if (selected) Color.White else MutedColor,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp
         )
     }
 }

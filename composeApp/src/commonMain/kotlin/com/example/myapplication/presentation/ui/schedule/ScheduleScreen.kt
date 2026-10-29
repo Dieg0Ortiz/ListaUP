@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,8 +36,8 @@ import com.example.myapplication.presentation.theme.GreenSoft
 import com.example.myapplication.presentation.theme.GreenText
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.PrimaryLight
 import com.example.myapplication.presentation.theme.SoftPurple
 import com.example.myapplication.presentation.ui.design.AppDialog
 import com.example.myapplication.presentation.ui.design.Pill
@@ -62,8 +61,8 @@ fun ScheduleScreen(isProfessor: Boolean) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(Brush.linearGradient(listOf(PrimaryColor, PrimaryLight)))
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(HeroColor)
                     .padding(18.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -147,7 +146,7 @@ private fun ScheduleCard(item: WeekClass) {
                     Pill(item.badge, bg, fg)
                 }
                 Text(item.docente, color = MutedColor, fontSize = 13.sp)
-                Text("📍 ${item.place}   •   ${item.grupo}", color = MutedColor, fontSize = 12.sp)
+                Text("${item.place}  ·  ${item.grupo}", color = MutedColor, fontSize = 12.sp)
             }
         }
     }

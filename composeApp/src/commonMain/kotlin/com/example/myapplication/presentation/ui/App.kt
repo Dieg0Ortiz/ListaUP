@@ -87,7 +87,9 @@ fun App() {
                         },
                         onOpenSchedule = { navController.navigate(Screen.Schedule) },
                         onOpenAlerts = { navController.navigate(Screen.Alerts) },
-                        onOpenNotifications = { navController.navigate(Screen.Alerts) }
+                        onOpenNotifications = { navController.navigate(Screen.Alerts) },
+                        onOpenPermissions = { navController.openTab("permissions") },
+                        onOpenReports = { navController.openTab("reports") }
                     )
                 }
 

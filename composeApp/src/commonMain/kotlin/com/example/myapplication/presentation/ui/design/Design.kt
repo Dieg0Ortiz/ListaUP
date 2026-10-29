@@ -35,8 +35,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.presentation.theme.CardStroke
 import com.example.myapplication.presentation.theme.InkColor
+import com.example.myapplication.presentation.theme.LineColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.SoftPurple
@@ -47,14 +47,14 @@ fun WhiteCard(
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(24.dp)
+    val shape = RoundedCornerShape(16.dp)
     val click = if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(shape)
             .background(Color.White)
-            .border(1.dp, CardStroke, shape)
+            .border(1.dp, LineColor, shape)
             .then(click)
             .padding(16.dp)
     ) {

@@ -65,7 +65,7 @@ fun StudentDashboardScreen(
         SampleData.studentRecent
     } else {
         state.schedule.take(3).map {
-            RecentClass(it.materia, "${it.horaInicio} • ${it.aula}", "📘", true, percent, it.docenteNombre)
+            RecentClass(it.materia, "${it.horaInicio} • ${it.aula}", "CL", true, percent, it.docenteNombre)
         }
     }
 
@@ -85,12 +85,13 @@ fun StudentDashboardScreen(
                     Text("Buenos días,", color = MutedColor, fontSize = 13.sp)
                     Text(name, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
                 }
-                Box(Modifier.clickable(onClick = onOpenNotifications).padding(8.dp)) {
-                    Text("🔔", fontSize = 22.sp)
-                    Box(
-                        Modifier.align(Alignment.TopEnd).size(8.dp).clip(CircleShape).background(RoseText)
-                    )
-                }
+                Text(
+                    "Avisos",
+                    color = PrimaryColor,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 13.sp,
+                    modifier = Modifier.clickable(onClick = onOpenNotifications).padding(8.dp)
+                )
             }
         }
         item {
@@ -102,7 +103,7 @@ fun StudentDashboardScreen(
                         Text("Asistencia Total", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
                         Text("Semestre Otoño 2023", color = MutedColor, fontSize = 13.sp)
                         Spacer(Modifier.height(8.dp))
-                        Pill("✓  Vas por buen camino", GreenSoft, GreenText)
+                        Pill("Al día", GreenSoft, GreenText)
                     }
                 }
             }
@@ -112,9 +113,9 @@ fun StudentDashboardScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                QuickTile("＋", "Solicitar\nPermiso", onRequestPermission, Modifier.weight(1f))
-                QuickTile("📅", "Reporte\nCompleto", onOpenSubjects, Modifier.weight(1f))
-                QuickTile("🏫", "Horario", onOpenSchedule, Modifier.weight(1f))
+                QuickTile("Permiso", onRequestPermission, Modifier.weight(1f))
+                QuickTile("Materias", onOpenSubjects, Modifier.weight(1f))
+                QuickTile("Horario", onOpenSchedule, Modifier.weight(1f))
             }
         }
         item {
@@ -141,7 +142,7 @@ fun StudentDashboardScreen(
                         Modifier.size(28.dp).clip(CircleShape).background(if (item.present) GreenSoft else RoseSoft),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(if (item.present) "✓" else "✕", color = if (item.present) GreenText else RoseText, fontWeight = FontWeight.Bold)
+                        Text(if (item.present) "P" else "F", color = if (item.present) GreenText else RoseText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                     }
                 }
             }
@@ -158,7 +159,7 @@ fun StudentDashboardScreen(
         item {
             PermissionStrip(
                 accent = Color(0xFFF59E0B),
-                icon = "✚",
+                icon = "MD",
                 title = "Permiso Médico",
                 subtitle = "Solicitado el 12 Oct",
                 chip = "En Directorio",
@@ -171,7 +172,7 @@ fun StudentDashboardScreen(
         item {
             PermissionStrip(
                 accent = GreenText,
-                icon = "✦",
+                icon = "EV",
                 title = "Evento Familiar",
                 subtitle = "Solicitado el 20 Sep",
                 chip = "Aprobado",
@@ -185,23 +186,20 @@ fun StudentDashboardScreen(
 }
 
 @Composable
-private fun QuickTile(icon: String, label: String, onClick: () -> Unit, modifier: Modifier) {
+private fun QuickTile(label: String, onClick: () -> Unit, modifier: Modifier) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(22.dp))
+            .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
             .clickable(onClick = onClick)
-            .padding(vertical = 16.dp),
+            .padding(vertical = 18.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            Modifier.size(42.dp).clip(CircleShape).background(SoftPurple),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(icon, color = PrimaryColor, fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.height(8.dp))
-        Text(label, color = InkColor, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, lineHeight = 15.sp)
+            Modifier.size(8.dp).clip(CircleShape).background(PrimaryColor)
+        )
+        Spacer(Modifier.height(10.dp))
+        Text(label, color = InkColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 

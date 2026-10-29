@@ -245,8 +245,6 @@ private fun TimeBox(value: String, modifier: Modifier, onClick: () -> Unit) {
             .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("🕐", fontSize = 14.sp)
-        Spacer(Modifier.width(8.dp))
         Text(value, fontWeight = FontWeight.Bold, color = InkColor, modifier = Modifier.weight(1f))
     }
 }

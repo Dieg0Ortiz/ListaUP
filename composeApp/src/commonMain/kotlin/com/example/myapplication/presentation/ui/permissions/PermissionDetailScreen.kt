@@ -157,7 +157,7 @@ fun PermissionDetailScreen(
                             .clickable { decision = "Aprobado" }
                             .padding(vertical = 16.dp),
                         contentAlignment = Alignment.Center
-                    ) { Text("✓  Aprobar", fontWeight = FontWeight.Bold, color = Color.White) }
+                    ) { Text("Aprobar", fontWeight = FontWeight.Bold, color = Color.White) }
                 }
             }
         }
@@ -175,7 +175,7 @@ private fun Evidence(name: String, onClick: () -> Unit, modifier: Modifier) {
                 .clip(RoundedCornerShape(16.dp))
                 .background(SoftPurple),
             contentAlignment = Alignment.Center
-        ) { Text("📄", fontSize = 28.sp) }
+        ) { Text("PDF", color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 13.sp) }
         Spacer(Modifier.height(6.dp))
         Text(name, color = MutedColor, fontSize = 12.sp)
     }

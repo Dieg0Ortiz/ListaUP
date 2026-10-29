@@ -69,7 +69,7 @@ fun AlertsScreen(
     }
 
     Column(Modifier.fillMaxSize().background(BackgroundColor)) {
-        TopBar("Centro de Notificaciones", onBack = onBack, action = "☰", onAction = {})
+        TopBar("Centro de notificaciones", onBack = onBack)
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
