@@ -100,14 +100,25 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    buildFeatures {
+        buildConfig = true
+    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
     buildTypes {
+        getByName("debug") {
+            // El emulador ve la máquina host en 10.0.2.2; en un teléfono real pasa -PlistaupDebugApiUrl=http://<ip>:8000
+            val debugUrl = (project.findProperty("listaupDebugApiUrl") as String?) ?: "http://10.0.2.2:8000"
+            buildConfigField("String", "API_BASE_URL", "\"$debugUrl\"")
+        }
         getByName("release") {
             isMinifyEnabled = false
+            // Producción según docs/api_contract.md de Asiste; se puede cambiar con -PlistaupApiUrl=https://...
+            val releaseUrl = (project.findProperty("listaupApiUrl") as String?) ?: "https://platinum.upchiapas.edu.mx"
+            buildConfigField("String", "API_BASE_URL", "\"$releaseUrl\"")
         }
     }
     compileOptions {

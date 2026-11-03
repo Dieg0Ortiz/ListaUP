@@ -15,5 +15,7 @@ data class User(
     val matricula: String = "",
     val role: UserRole = UserRole.STUDENT,
     val photoUrl: String = "",
-    val docenteId: String = ""
+    val docenteId: String = "",
+    /** Solo alumnos: docente tutor al que llegan sus solicitudes de permiso. */
+    val tutorId: String = ""
 )

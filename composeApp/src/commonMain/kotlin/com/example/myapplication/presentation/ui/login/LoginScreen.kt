@@ -1,5 +1,6 @@
 package com.example.myapplication.presentation.ui.login
 
+import com.example.myapplication.core.AppConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -199,7 +200,7 @@ fun LoginScreen(
 
         Spacer(Modifier.height(8.dp))
         TextButton(
-            onClick = { dialog = "Para restablecer tu contraseña, escribe a soporte.it@institucional.edu.mx desde tu correo institucional." },
+            onClick = { dialog = "Para restablecer tu contraseña, escribe a ${AppConfig.SUPPORT_EMAIL} desde tu correo institucional." },
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("¿Olvidaste tu contraseña?", color = PrimaryColor, fontWeight = FontWeight.SemiBold)
@@ -212,7 +213,7 @@ fun LoginScreen(
         )
         Spacer(Modifier.height(28.dp))
         TextButton(onClick = {
-            dialog = "Soporte IT está disponible de lunes a viernes, 8:00 a 16:00. Correo: soporte.it@institucional.edu.mx"
+            dialog = "Escribe a ${AppConfig.SUPPORT_EMAIL} desde tu correo institucional e indica tu matrícula o usuario."
         }) {
             Text("Contactar soporte", color = MutedColor, fontWeight = FontWeight.Medium)
         }

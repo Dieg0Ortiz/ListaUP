@@ -22,27 +22,28 @@ class AlertRepositoryImpl(
                 apiService.getProfessorGroups(AppConfig.PERIODO_ID, docenteId).map { it.grupoId to it.materia }
             }
 
+            // El umbral (en faltas) lo ajusta el docente; la API ya filtra con él
+            val umbral = sessionManager.umbralFaltas
             val alerts = groups.flatMap { (id, materia) ->
-                apiService.getAlerts(id, UMBRAL_FALTAS).alumnosEnRiesgo.map { dto ->
+                apiService.getAlerts(id, umbral).alumnosEnRiesgo.map { dto ->
                     Alert(
                         id = "${id}_${dto.alumnoId}",
                         studentId = dto.alumnoId,
                         studentName = dto.nombre,
                         matricula = dto.matricula,
                         materia = materia,
-                        absencePercentage = 100.0 - dto.porcentajeAsistencia,
+                        absencePercentage = (100.0 - dto.porcentajeAsistencia).coerceIn(0.0, 100.0),
                         threshold = threshold,
-                        grupoId = id
+                        grupoId = id,
+                        absences = dto.totalAusencias,
+                        lates = dto.totalRetardos,
+                        risk = dto.estatusRiesgo
                     )
                 }
-            }.filter { it.absencePercentage >= threshold }
+            }.sortedByDescending { it.absencePercentage }
             Result.success(alerts)
         } catch (e: Exception) {
             Result.failure(e)
         }
-    }
-
-    private companion object {
-        const val UMBRAL_FALTAS = 3
     }
 }

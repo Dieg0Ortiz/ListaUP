@@ -2,6 +2,7 @@ package com.example.myapplication.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.core.isDebugBuild
 import com.example.myapplication.data.local.SessionManager
 import com.example.myapplication.domain.model.User
 import com.example.myapplication.domain.model.UserRole
@@ -64,7 +65,8 @@ class LoginViewModel(
             return
         }
 
-        if (state.credential.equals("demo", ignoreCase = true) && state.password == "demo") {
+        // Acceso demo solo en compilaciones de desarrollo; en producción "demo" va a la API como cualquier usuario
+        if (isDebugBuild && state.credential.equals("demo", ignoreCase = true) && state.password == "demo") {
             val user = if (state.asProfessor) {
                 User(
                     id = "docente-demo",

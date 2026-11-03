@@ -2,6 +2,7 @@ package com.example.myapplication.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.myapplication.core.userMessage
 import com.example.myapplication.domain.model.AttendanceStatus
 import com.example.myapplication.domain.model.StudentAttendance
 import com.example.myapplication.domain.usecase.GetStudentsOfGroupUseCase
@@ -35,6 +36,9 @@ class AttendanceViewModel(
     val uiState: StateFlow<AttendanceUiState> = _uiState.asStateFlow()
 
     fun loadStudents(grupoId: String, materia: String) {
+        // Al rotar la pantalla la vista se recrea: no se recarga para no borrar lo ya marcado
+        val current = _uiState.value
+        if (current.selectedGroup == grupoId && (current.students.isNotEmpty() || current.isLoading)) return
         _uiState.value = AttendanceUiState(isLoading = true, selectedGroup = grupoId, materia = materia)
         viewModelScope.launch {
             val result = getStudentsOfGroupUseCase(grupoId)
@@ -51,7 +55,7 @@ class AttendanceViewModel(
                 onFailure = { e ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = e.message
+                        error = e.userMessage()
                     )
                 }
             )
@@ -96,8 +100,10 @@ class AttendanceViewModel(
     }
 
     fun submitAttendance() {
+        // Evita mandar la lista dos veces con un doble toque
+        if (_uiState.value.isSubmitting || _uiState.value.isSubmitted) return
+        _uiState.value = _uiState.value.copy(isSubmitting = true, error = null)
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSubmitting = true, error = null)
             val result = submitAttendanceUseCase(
                 _uiState.value.selectedGroup,
                 _uiState.value.materia,
@@ -113,7 +119,7 @@ class AttendanceViewModel(
                 onFailure = { e ->
                     _uiState.value = _uiState.value.copy(
                         isSubmitting = false,
-                        error = e.message
+                        error = e.userMessage()
                     )
                 }
             )

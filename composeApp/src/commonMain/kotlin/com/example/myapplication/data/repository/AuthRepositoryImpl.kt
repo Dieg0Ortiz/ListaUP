@@ -24,7 +24,9 @@ class AuthRepositoryImpl(
                     name = response.nombre,
                     email = response.correo,
                     matricula = response.matricula.ifEmpty { matricula },
-                    role = UserRole.STUDENT
+                    role = UserRole.STUDENT,
+                    // En el login de alumno, DocenteID trae a su tutor
+                    tutorId = response.docenteId
                 )
                 sessionManager.saveUser(user)
                 Result.success(user)

@@ -1,5 +1,14 @@
 package com.example.myapplication.presentation.ui.profile
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextAlign
+import com.example.myapplication.core.AppConfig
+import com.example.myapplication.presentation.ui.design.AppDialog
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -51,6 +60,9 @@ fun ProfileScreen(
         if (state.isLoggedOut) onLogout()
     }
 
+    var confirmLogout by remember { mutableStateOf(false) }
+
+    Box(Modifier.fillMaxSize()) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BackgroundColor),
         contentPadding = PaddingValues(bottom = 28.dp)
@@ -100,11 +112,29 @@ fun ProfileScreen(
         item {
             Spacer(Modifier.height(20.dp))
             PrimaryButton(
-                "Cerrar Sesión",
-                onClick = { viewModel.logout() },
+                "Cerrar sesión",
+                onClick = { confirmLogout = true },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
+            Text(
+                "ListaUP • Soporte: ${AppConfig.SUPPORT_EMAIL}",
+                color = MutedColor,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                textAlign = TextAlign.Center
+            )
         }
+    }
+    if (confirmLogout) {
+        AppDialog(
+            title = "¿Cerrar sesión?",
+            body = "Tendrás que volver a escribir tu usuario y contraseña.",
+            confirm = "Cerrar sesión",
+            dismiss = "Cancelar",
+            onConfirm = { confirmLogout = false; viewModel.logout() },
+            onDismiss = { confirmLogout = false }
+        )
+    }
     }
 }
 

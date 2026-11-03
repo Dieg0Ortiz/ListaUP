@@ -1,11 +1,7 @@
 package com.example.myapplication.presentation.ui.reports
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,206 +10,181 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.domain.model.GroupAttendanceStats
 import com.example.myapplication.presentation.theme.AmberSoft
+import com.example.myapplication.presentation.theme.AmberText
 import com.example.myapplication.presentation.theme.BackgroundColor
-import com.example.myapplication.presentation.theme.FieldColor
+import com.example.myapplication.presentation.theme.GreenSoft
+import com.example.myapplication.presentation.theme.GreenText
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
-import com.example.myapplication.presentation.theme.SoftPurple
-import com.example.myapplication.presentation.ui.design.AvatarCircle
-import com.example.myapplication.presentation.ui.design.Pill
-import com.example.myapplication.presentation.ui.design.PrimaryButton
-import com.example.myapplication.presentation.ui.design.TopBar
+import com.example.myapplication.presentation.ui.design.AppIcons
+import com.example.myapplication.presentation.ui.design.ErrorState
+import com.example.myapplication.presentation.ui.design.InlineError
+import com.example.myapplication.presentation.ui.design.LoadingState
+import com.example.myapplication.presentation.ui.design.MessageState
+import com.example.myapplication.presentation.ui.design.RefreshBox
 import com.example.myapplication.presentation.ui.design.WhiteCard
+import com.example.myapplication.presentation.viewmodel.ReportsViewModel
+import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.roundToInt
+
+// Por debajo de esto un grupo se marca en ámbar, y por debajo de RISK_RATE en rojo
+private const val WARNING_RATE = 85.0
+private const val RISK_RATE = 75.0
 
 @Composable
-fun ReportsScreen(onBack: (() -> Unit)? = null) {
-    val cohorts = listOf("2024", "2023", "2022")
-    var cohort by remember { mutableIntStateOf(0) }
-    var group by remember { mutableStateOf("Todos") }
-    var openTutor by remember { mutableStateOf("AT") }
-    var exported by remember { mutableStateOf(false) }
-    val rate = when (cohorts[cohort]) {
-        "2024" -> "84.2%"
-        "2023" -> "88.0%"
-        else -> "91.4%"
-    }
+fun ReportsScreen(
+    viewModel: ReportsViewModel = koinViewModel(),
+    onOpenSettings: () -> Unit
+) {
+    val state by viewModel.uiState.collectAsState()
+    val firstLoad = state.isLoading && state.groups.isEmpty()
+    val overall = state.overallRate
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
-        contentPadding = PaddingValues(bottom = 28.dp)
+    RefreshBox(
+        refreshing = state.isLoading && !firstLoad,
+        onRefresh = viewModel::load,
+        modifier = Modifier.fillMaxSize().background(BackgroundColor)
     ) {
-        item {
-            TopBar("Reportes por Cohorte y Grupo", onBack = onBack, action = "↗", onAction = { exported = true })
-        }
-        item {
-            Row(
-                Modifier.padding(horizontal = 20.dp).horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    "Cohorte: ${cohorts[cohort]}  ▾",
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(50))
-                        .background(PrimaryColor)
-                        .clickable { cohort = (cohort + 1) % cohorts.size }
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                )
-                listOf("Todos", "A", "B", "C").forEach { label ->
-                    val selected = group == label
-                    Text(
-                        if (label == "Todos") "Grupo: Todos" else "Grupo $label",
-                        color = if (selected) PrimaryColor else InkColor,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(50))
-                            .background(if (selected) SoftPurple else Color.White)
-                            .border(1.dp, if (selected) PrimaryColor else FieldColor, RoundedCornerShape(50))
-                            .clickable { group = label }
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Text("Reportes", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = InkColor)
+                Text("Asistencia acumulada del periodo en tus grupos", color = MutedColor)
+            }
+            when {
+                firstLoad -> item { LoadingState("Calculando asistencia…") }
+                state.error != null && state.groups.isEmpty() -> item { ErrorState(state.error ?: "", onRetry = viewModel::load) }
+                state.groups.isEmpty() -> item {
+                    MessageState(
+                        icon = AppIcons.Chart,
+                        title = "Aún no hay listas registradas",
+                        body = "Los reportes se llenan conforme pases lista en tus grupos."
                     )
                 }
-            }
-        }
-        item {
-            Spacer(Modifier.height(16.dp))
-            Text("Comparativa de Asistencia", modifier = Modifier.padding(horizontal = 20.dp), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = InkColor)
-            Spacer(Modifier.height(8.dp))
-            WhiteCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Tasa de Asistencia Promedio", modifier = Modifier.weight(1f), color = MutedColor, fontSize = 13.sp)
-                    Pill("↘ -2.4%", RoseSoft, RoseText)
+                else -> {
+                    if (state.error != null) item { InlineError(state.error ?: "", onRetry = viewModel::load) }
+                    item {
+                        Column(
+                            Modifier.fillMaxWidth().clip(RoundedCornerShape(20.dp)).background(HeroColor).padding(20.dp)
+                        ) {
+                            Text("Asistencia promedio", color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
+                            Text(
+                                overall?.let { "${it.roundToInt()}%" } ?: "—",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 40.sp
+                            )
+                            Text(
+                                "${state.groups.sumOf { it.sessions }} listas en ${state.groups.size} ${if (state.groups.size == 1) "grupo" else "grupos"}",
+                                color = Color.White.copy(alpha = 0.75f),
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                    item {
+                        Text("Por grupo", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = InkColor, modifier = Modifier.padding(top = 8.dp))
+                    }
+                    items(state.groups, key = { it.grupoId }) { group -> GroupRow(group) }
                 }
-                Text(rate, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 36.sp)
-                Spacer(Modifier.height(28.dp))
-                Text("META 85%", modifier = Modifier.fillMaxWidth(), color = MutedColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(16.dp))
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    listOf("Gp A", "Gp B", "Gp C", "Gp D", "Gp E").forEach {
-                        Text(it, color = MutedColor, fontSize = 12.sp)
+            }
+            if (!firstLoad) {
+                item {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                        Text("Alumnos en riesgo", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = InkColor, modifier = Modifier.weight(1f))
+                        TextButton(onClick = onOpenSettings) { Text("Umbral", color = PrimaryColor, fontWeight = FontWeight.Bold) }
+                    }
+                }
+                if (state.atRisk.isEmpty()) {
+                    item {
+                        WhiteCard {
+                            Text("Ningún alumno llega al límite de faltas.", color = MutedColor, fontSize = 14.sp)
+                        }
+                    }
+                }
+                items(state.atRisk, key = { it.id }) { alert ->
+                    WhiteCard {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column(Modifier.weight(1f)) {
+                                Text(alert.studentName, fontWeight = FontWeight.SemiBold, color = InkColor)
+                                val detail = listOf(alert.matricula, alert.materia).filter { it.isNotBlank() }.joinToString(" • ")
+                                if (detail.isNotBlank()) Text(detail, color = MutedColor, fontSize = 12.sp)
+                            }
+                            Text(
+                                "${alert.absences} ${if (alert.absences == 1) "falta" else "faltas"}",
+                                color = RoseText,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
         }
-        item {
-            Spacer(Modifier.height(16.dp))
-            Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.Bottom) {
-                Text("Estudiantes en\nRiesgo", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold, fontSize = 20.sp, color = InkColor)
-                Text("POR TUTOR\nACADÉMICO", color = MutedColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            }
-            Spacer(Modifier.height(8.dp))
-            TutorCard(
-                initials = "AT",
-                name = "Dr. Aris Thorne",
-                summary = "5 estudiantes en riesgo",
-                summaryColor = RoseText,
-                expanded = openTutor == "AT",
-                onToggle = { openTutor = if (openTutor == "AT") "" else "AT" }
-            ) {
-                RiskStudent("Julianna Vane", "ID: #2100492", "64%", "CRÍTICO", RoseSoft, RoseText)
-                RiskStudent("Marcus Wright", "ID: #2100511", "72%", "ADVERTENCIA", AmberSoft, Color(0xFFB45309))
-            }
-            TutorCard(
-                initials = "SL",
-                name = "Prof. Sarah Loomis",
-                summary = "2 estudiantes en riesgo",
-                summaryColor = Color(0xFFB45309),
-                expanded = openTutor == "SL",
-                onToggle = { openTutor = if (openTutor == "SL") "" else "SL" }
-            ) {
-                RiskStudent("Elena Cruz", "ID: #2100601", "70%", "ADVERTENCIA", AmberSoft, Color(0xFFB45309))
-            }
-            TutorCard(
-                initials = "JK",
-                name = "Dr. James Kade",
-                summary = "Sin estudiantes en riesgo",
-                summaryColor = MutedColor,
-                expanded = openTutor == "JK",
-                onToggle = { openTutor = if (openTutor == "JK") "" else "JK" }
-            ) {
-                Text("Este tutor no tiene alumnos bajo el umbral.", color = MutedColor, fontSize = 13.sp)
-            }
-        }
-        item {
-            Spacer(Modifier.height(8.dp))
-            if (exported) {
+    }
+}
+
+@Composable
+private fun GroupRow(group: GroupAttendanceStats) {
+    val rate = group.attendanceRate
+    val (bg, fg) = when {
+        rate == null -> AmberSoft to MutedColor
+        rate < RISK_RATE -> RoseSoft to RoseText
+        rate < WARNING_RATE -> AmberSoft to AmberText
+        else -> GreenSoft to GreenText
+    }
+    WhiteCard(modifier = Modifier.semantics(mergeDescendants = true) {}) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
                 Text(
-                    "Reporte de cohorte ${cohorts[cohort]} listo. Revisa tu correo institucional.",
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp),
-                    color = PrimaryColor,
-                    fontWeight = FontWeight.SemiBold
+                    group.materia.ifBlank { "Grupo ${group.grupoId}" },
+                    fontWeight = FontWeight.Bold,
+                    color = InkColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    "${group.sessions} ${if (group.sessions == 1) "lista" else "listas"} • Grupo ${group.grupoId}",
+                    color = MutedColor,
+                    fontSize = 12.sp
                 )
             }
-            PrimaryButton(
-                "↓   Exportar Reporte Completo",
-                onClick = { exported = true },
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
+            Spacer(Modifier.width(8.dp))
+            Text(rate?.let { "${it.roundToInt()}%" } ?: "—", color = fg, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
-    }
-}
-
-@Composable
-private fun TutorCard(
-    initials: String,
-    name: String,
-    summary: String,
-    summaryColor: Color,
-    expanded: Boolean,
-    onToggle: () -> Unit,
-    content: @Composable () -> Unit
-) {
-    WhiteCard(modifier = Modifier.padding(horizontal = 20.dp, vertical = 6.dp), onClick = onToggle) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            AvatarCircle(initials)
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(name, fontWeight = FontWeight.Bold, color = InkColor)
-                Text(summary, color = summaryColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-            }
-            Text(if (expanded) "˄" else "˅", color = MutedColor, fontSize = 18.sp)
-        }
-        if (expanded) {
-            Spacer(Modifier.height(10.dp))
-            content()
-        }
-    }
-}
-
-@Composable
-private fun RiskStudent(name: String, id: String, percent: String, label: String, bg: Color, fg: Color) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(name, fontWeight = FontWeight.SemiBold, color = InkColor)
-            Text(id, color = MutedColor, fontSize = 12.sp)
-        }
-        Text(percent, color = fg, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.width(8.dp))
-        Pill(label, bg, fg)
+        Spacer(Modifier.height(10.dp))
+        LinearProgressIndicator(
+            progress = { ((rate ?: 0.0) / 100.0).toFloat() },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)),
+            color = fg,
+            trackColor = bg,
+            drawStopIndicator = {}
+        )
     }
 }

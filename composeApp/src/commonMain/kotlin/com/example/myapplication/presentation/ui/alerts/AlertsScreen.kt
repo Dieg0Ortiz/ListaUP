@@ -1,7 +1,6 @@
 package com.example.myapplication.presentation.ui.alerts
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,28 +10,28 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.ui.semantics.Role
-import com.example.myapplication.presentation.ui.design.AppIcons
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,31 +43,36 @@ import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.presentation.ui.design.AppIcons
 import com.example.myapplication.presentation.ui.design.IconBubble
-import com.example.myapplication.presentation.ui.design.PermissionRequestCard
-import com.example.myapplication.presentation.ui.design.SampleData
+import com.example.myapplication.presentation.ui.design.InlineError
+import com.example.myapplication.presentation.ui.design.LoadingState
+import com.example.myapplication.presentation.ui.design.MessageState
+import com.example.myapplication.presentation.ui.design.RefreshBox
 import com.example.myapplication.presentation.ui.design.TopBar
 import com.example.myapplication.presentation.ui.design.WhiteCard
+import com.example.myapplication.presentation.ui.permissions.PermissionRow
 import com.example.myapplication.presentation.viewmodel.AlertsViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import kotlin.math.roundToInt
 
 @Composable
 fun AlertsScreen(
     viewModel: AlertsViewModel = koinViewModel(),
     onBack: (() -> Unit)? = null,
-    onReview: (PermissionRequestCard) -> Unit = {}
+    onReview: (Int) -> Unit = {},
+    onOpenSettings: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsState()
-    var tab by remember { mutableStateOf("Todas") }
+    // 0 = alertas de asistencia, 1 = solicitudes por revisar
+    var tab by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         viewModel.loadAlerts()
     }
 
-    val alerts = state.alerts
-
     Column(Modifier.fillMaxSize().background(BackgroundColor)) {
-        TopBar("Centro de notificaciones", onBack = onBack)
+        TopBar("Alertas y solicitudes", onBack = onBack)
         Row(
             modifier = Modifier
                 .padding(horizontal = 20.dp)
@@ -77,14 +81,14 @@ fun AlertsScreen(
                 .background(Color.White)
                 .padding(4.dp)
         ) {
-            listOf("Todas", "Alertas", "Solicitudes").forEach { label ->
-                val selected = tab == label
+            listOf("Asistencia (${state.alerts.size})", "Solicitudes (${state.pendingRequests.size})").forEachIndexed { index, label ->
+                val selected = tab == index
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .background(if (selected) SoftPurple else Color.Transparent)
-                        .selectable(selected = selected, role = Role.Tab) { tab = label }
+                        .selectable(selected = selected, role = Role.Tab) { tab = index }
                         .heightIn(min = 44.dp)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
@@ -93,46 +97,57 @@ fun AlertsScreen(
                 }
             }
         }
-        LazyColumn(
-            contentPadding = PaddingValues(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (tab != "Solicitudes") {
-                item {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("ALERTAS DE ASISTENCIA", color = MutedColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                        Text(
-                            "${alerts.size} NUEVAS",
-                            color = Color.White,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.clip(RoundedCornerShape(50)).background(RoseText).padding(horizontal = 8.dp, vertical = 4.dp)
-                        )
-                    }
-                }
-                if (alerts.isEmpty()) {
+        RefreshBox(refreshing = state.isLoading, onRefresh = { viewModel.loadAlerts() }, modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (tab == 0) {
                     item {
-                        Text(
-                            when {
-                                state.isLoading -> "Cargando alertas…"
-                                state.error != null -> "No se pudieron cargar las alertas: ${state.error}"
-                                else -> "Sin alumnos en riesgo por ahora."
-                            },
-                            color = MutedColor,
-                            fontSize = 13.sp
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Alumnos con ${state.umbralFaltas} faltas o más",
+                                color = MutedColor,
+                                fontSize = 13.sp,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TextButton(onClick = onOpenSettings) {
+                                Text("Cambiar", color = PrimaryColor, fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
-                }
-                items(alerts) { alert ->
-                    AlertCard(alert)
-                }
-            }
-            if (tab != "Alertas") {
-                item {
-                    Text("SOLICITUDES DE PERMISO", color = MutedColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                }
-                items(SampleData.permissionRequests.take(2)) { request ->
-                    RequestCard(request) { onReview(request) }
+                    if (state.error != null) {
+                        item { InlineError(state.error ?: "", onRetry = { viewModel.loadAlerts() }) }
+                    }
+                    when {
+                        state.isLoading && state.alerts.isEmpty() -> item { LoadingState("Revisando la asistencia de tus grupos…") }
+                        state.alerts.isEmpty() && state.error == null -> item {
+                            MessageState(
+                                icon = AppIcons.CheckCircle,
+                                title = "Sin alumnos en riesgo",
+                                body = "Ningún alumno de tus grupos llega al límite de faltas."
+                            )
+                        }
+                    }
+                    items(state.alerts, key = { it.id }) { alert -> AlertCard(alert) }
+                } else {
+                    if (state.requestsError != null) {
+                        item { InlineError(state.requestsError ?: "", onRetry = { viewModel.loadAlerts() }) }
+                    }
+                    when {
+                        state.isLoading && state.pendingRequests.isEmpty() -> item { LoadingState("Cargando solicitudes…") }
+                        state.pendingRequests.isEmpty() && state.requestsError == null -> item {
+                            MessageState(
+                                icon = AppIcons.Document,
+                                title = "Nada por revisar",
+                                body = "Las solicitudes de permiso de tus tutorados aparecerán aquí."
+                            )
+                        }
+                    }
+                    items(state.pendingRequests, key = { it.id }) { permission ->
+                        PermissionRow(permission, showStudent = true) { onReview(permission.id) }
+                    }
                 }
             }
         }
@@ -141,16 +156,20 @@ fun AlertsScreen(
 
 @Composable
 private fun AlertCard(alert: Alert) {
-    val percent = alert.absencePercentage.toInt().coerceIn(0, 100)
+    val percent = alert.absencePercentage.roundToInt().coerceIn(0, 100)
     WhiteCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconBubble(AppIcons.Warning, RoseSoft, size = 40.dp, tint = RoseText)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(alert.studentName, fontWeight = FontWeight.Bold, color = InkColor)
-                Text(alert.materia, color = MutedColor, fontSize = 13.sp)
+                val detail = listOf(alert.matricula, alert.materia).filter { it.isNotBlank() }.joinToString(" • ")
+                if (detail.isNotBlank()) Text(detail, color = MutedColor, fontSize = 13.sp)
             }
-            Text("$percent%", color = RoseText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Column(horizontalAlignment = Alignment.End) {
+                Text("${alert.absences}", color = RoseText, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                Text(if (alert.absences == 1) "falta" else "faltas", color = MutedColor, fontSize = 12.sp)
+            }
         }
         Spacer(Modifier.height(12.dp))
         LinearProgressIndicator(
@@ -161,35 +180,13 @@ private fun AlertCard(alert: Alert) {
             drawStopIndicator = {}
         )
         Spacer(Modifier.height(6.dp))
-        Text("de inasistencias en la materia", color = MutedColor, fontSize = 12.sp)
-    }
-}
-
-@Composable
-private fun RequestCard(request: PermissionRequestCard, onReview: () -> Unit) {
-    WhiteCard {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconBubble(request.icon, SoftPurple, size = 40.dp)
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
-                Text(request.name, fontWeight = FontWeight.Bold, color = InkColor)
-                Text(request.detail, color = MutedColor, fontSize = 13.sp)
-            }
-            Text(request.time, color = MutedColor, fontSize = 12.sp)
-        }
-        Spacer(Modifier.height(12.dp))
-        Row {
-            Box(
-                Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(PrimaryColor)
-                    .clickable(onClick = onReview)
-                    .padding(vertical = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Revisar", color = Color.White, fontWeight = FontWeight.Bold)
-            }
-        }
+        Text(
+            buildString {
+                append("$percent% de inasistencia")
+                if (alert.lates > 0) append(" • ${alert.lates} ${if (alert.lates == 1) "retardo" else "retardos"}")
+            },
+            color = MutedColor,
+            fontSize = 12.sp
+        )
     }
 }

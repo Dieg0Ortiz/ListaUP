@@ -1,6 +1,7 @@
 package com.example.myapplication.data.remote
 
 import com.example.myapplication.core.apiBaseUrl
+import com.example.myapplication.core.isDebugBuild
 import com.example.myapplication.data.local.SessionManager
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -12,7 +13,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 object ApiClient {
-    val BASE_URL = apiBaseUrl
+    val BASE_URL: String get() = apiBaseUrl
 
     fun create(sessionManager: SessionManager): HttpClient {
         return HttpClient {
@@ -25,9 +26,13 @@ object ApiClient {
                 })
             }
 
-            install(Logging) {
-                logger = Logger.DEFAULT
-                level = LogLevel.BODY
+            // Solo en desarrollo, y sin cuerpos: el login viaja con la contraseña
+            if (isDebugBuild) {
+                install(Logging) {
+                    logger = Logger.DEFAULT
+                    level = LogLevel.INFO
+                    sanitizeHeader { it == HttpHeaders.Cookie || it == HttpHeaders.SetCookie }
+                }
             }
 
             install(HttpTimeout) {

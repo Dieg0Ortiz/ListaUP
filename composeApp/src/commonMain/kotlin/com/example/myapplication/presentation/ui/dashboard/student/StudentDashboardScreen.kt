@@ -11,13 +11,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,25 +30,36 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myapplication.core.DAY_NAMES
+import com.example.myapplication.core.greeting
+import com.example.myapplication.core.initialsOf
+import com.example.myapplication.core.longLabel
+import com.example.myapplication.core.now
+import com.example.myapplication.core.parseTime
+import com.example.myapplication.core.today
+import com.example.myapplication.domain.model.ClassSession
 import com.example.myapplication.presentation.theme.BackgroundColor
-import com.example.myapplication.presentation.theme.GreenSoft
-import com.example.myapplication.presentation.theme.GreenText
+import com.example.myapplication.presentation.theme.HeroColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
-import com.example.myapplication.presentation.theme.RoseSoft
-import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.presentation.ui.design.AppIcons
 import com.example.myapplication.presentation.ui.design.AvatarCircle
+import com.example.myapplication.presentation.ui.design.InlineError
+import com.example.myapplication.presentation.ui.design.LoadingState
 import com.example.myapplication.presentation.ui.design.Pill
-import com.example.myapplication.presentation.ui.design.ProgressRing
-import com.example.myapplication.presentation.ui.design.RecentClass
-import com.example.myapplication.presentation.ui.design.SampleData
+import com.example.myapplication.presentation.ui.design.RefreshBox
 import com.example.myapplication.presentation.ui.design.SectionHeader
 import com.example.myapplication.presentation.ui.design.WhiteCard
+import com.example.myapplication.presentation.ui.permissions.PermissionRow
 import com.example.myapplication.presentation.viewmodel.StudentDashboardViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -53,188 +68,239 @@ fun StudentDashboardScreen(
     viewModel: StudentDashboardViewModel = koinViewModel(),
     onOpenNotifications: () -> Unit,
     onRequestPermission: () -> Unit,
+    onOpenPermissions: () -> Unit,
     onOpenSubjects: () -> Unit,
     onOpenSchedule: () -> Unit,
-    onOpenSubject: (RecentClass) -> Unit,
-    onOpenPermission: (String, String, Boolean) -> Unit
+    onOpenPermission: (Int) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
-    val name = state.user?.name ?: "Alex Johnson"
-    val percent = if (state.schedule.isEmpty() && state.groups.isEmpty()) 85 else state.attendancePercentage.toInt()
-    val recent = if (state.schedule.isEmpty()) {
-        SampleData.studentRecent
-    } else {
-        state.schedule.take(3).map {
-            RecentClass(it.materia, "${it.horaInicio} • ${it.aula}", "CL", true, percent, it.docenteNombre)
-        }
-    }
+    val name = state.user?.name.orEmpty()
+    val today = today()
+    val todayIndex = today.dayOfWeek.ordinal
+    val todayClasses = state.schedule
+        .filter { it.dayIndex == todayIndex }
+        .sortedBy { parseTime(it.horaInicio) }
+    val nextClass = upcoming(state.schedule)
+    val firstLoad = state.isLoading && state.schedule.isEmpty() && state.groups.isEmpty()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().background(BackgroundColor),
-        contentPadding = PaddingValues(bottom = 24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    RefreshBox(
+        refreshing = state.isLoading && !firstLoad,
+        onRefresh = viewModel::loadDashboard,
+        modifier = Modifier.fillMaxSize().background(BackgroundColor)
     ) {
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                AvatarCircle(name.take(1).uppercase())
-                Spacer(Modifier.width(12.dp))
-                Column(Modifier.weight(1f)) {
-                    Text("Buenos días,", color = MutedColor, fontSize = 13.sp)
-                    Text(name, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-                }
-                Text(
-                    "Avisos",
-                    color = PrimaryColor,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 13.sp,
-                    modifier = Modifier.clickable(onClick = onOpenNotifications).padding(8.dp)
-                )
-            }
-        }
-        item {
-            WhiteCard(modifier = Modifier.padding(horizontal = 20.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    ProgressRing(percent, size = 92.dp)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text("Asistencia Total", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("Semestre Otoño 2023", color = MutedColor, fontSize = 13.sp)
-                        Spacer(Modifier.height(8.dp))
-                        Pill("Al día", GreenSoft, GreenText)
-                    }
-                }
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                QuickTile("Permiso", onRequestPermission, Modifier.weight(1f))
-                QuickTile("Materias", onOpenSubjects, Modifier.weight(1f))
-                QuickTile("Horario", onOpenSchedule, Modifier.weight(1f))
-            }
-        }
-        item {
-            Box(Modifier.padding(horizontal = 20.dp)) {
-                SectionHeader("Clases Recientes", "Ver Todo", onOpenSubjects)
-            }
-        }
-        items(recent.size) { index ->
-            val item = recent[index]
-            WhiteCard(modifier = Modifier.padding(horizontal = 20.dp), onClick = { onOpenSubject(item) }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        Modifier.size(42.dp).clip(RoundedCornerShape(12.dp)).background(SoftPurple),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(item.icon, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                    }
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AvatarCircle(initialsOf(name))
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(item.materia, fontWeight = FontWeight.Bold, color = InkColor)
-                        Text(item.detail, color = MutedColor, fontSize = 12.sp)
+                        Text("${greeting()},", color = MutedColor, fontSize = 13.sp)
+                        Text(
+                            name.ifBlank { "Alumno" },
+                            color = InkColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-                    Box(
-                        Modifier.size(28.dp).clip(CircleShape).background(if (item.present) GreenSoft else RoseSoft),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(if (item.present) "P" else "F", color = if (item.present) GreenText else RoseText, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    IconButton(onClick = onOpenNotifications) {
+                        BadgedBox(badge = {
+                            if (state.unreadNotifications > 0) {
+                                Badge(containerColor = PrimaryColor) { Text("${state.unreadNotifications}") }
+                            }
+                        }) {
+                            val label = if (state.unreadNotifications > 0) {
+                                "Avisos, ${state.unreadNotifications} sin leer"
+                            } else {
+                                "Avisos"
+                            }
+                            Icon(AppIcons.Bell, contentDescription = label, tint = InkColor)
+                        }
                     }
                 }
             }
+            if (state.error != null) {
+                item {
+                    InlineError(state.error ?: "", onRetry = viewModel::loadDashboard, modifier = Modifier.padding(horizontal = 20.dp))
+                }
+            }
+            item {
+                NextClassCard(nextClass, firstLoad, onOpenSchedule)
+            }
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    QuickTile(AppIcons.Document, "Pedir permiso", onRequestPermission, Modifier.weight(1f))
+                    QuickTile(AppIcons.List, "Materias", onOpenSubjects, Modifier.weight(1f))
+                    QuickTile(AppIcons.Calendar, "Horario", onOpenSchedule, Modifier.weight(1f))
+                }
+            }
+            item {
+                Box(Modifier.padding(start = 20.dp, end = 8.dp)) {
+                    SectionHeader("Hoy, ${DAY_NAMES[todayIndex].lowercase()}", "Ver semana", onOpenSchedule)
+                }
+            }
+            when {
+                firstLoad -> item { LoadingState("Cargando tu horario…") }
+                todayClasses.isEmpty() -> item {
+                    WhiteCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+                        Text("No tienes clases hoy", color = InkColor, fontWeight = FontWeight.Bold)
+                        Text(today.longLabel(), color = MutedColor, fontSize = 13.sp)
+                    }
+                }
+                else -> items(todayClasses, key = { it.id + it.dia + it.horaInicio }) { session ->
+                    TodayClassRow(session)
+                }
+            }
+            item {
+                Box(Modifier.padding(start = 20.dp, end = 8.dp)) {
+                    SectionHeader("Mis permisos", if (state.permissions.isNotEmpty()) "Ver todos" else null, onOpenPermissions)
+                }
+            }
+            if (state.permissions.isEmpty() && !firstLoad) {
+                item {
+                    WhiteCard(modifier = Modifier.padding(horizontal = 20.dp), onClick = onRequestPermission) {
+                        Text("Aún no has pedido permisos", color = InkColor, fontWeight = FontWeight.Bold)
+                        Text(
+                            "Si vas a faltar por un motivo justificado, solicítalo aquí y tu tutor lo revisará.",
+                            color = MutedColor,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+            items(state.permissions.take(3), key = { it.id }) { permission ->
+                PermissionRow(permission, showStudent = false, modifier = Modifier.padding(horizontal = 20.dp)) {
+                    onOpenPermission(permission.id)
+                }
+            }
         }
-        item {
-            Text(
-                "Estado de Permisos",
-                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
-                color = InkColor,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            )
+    }
+}
+
+/** La clase en curso o la siguiente de hoy; si ya no hay, la primera del próximo día con clases. */
+private fun upcoming(schedule: List<ClassSession>): Pair<ClassSession, String>? {
+    if (schedule.isEmpty()) return null
+    val nowTime = now().time
+    val todayIndex = today().dayOfWeek.ordinal
+    for (offset in 0..6) {
+        val day = (todayIndex + offset) % 7
+        val candidates = schedule.filter { it.dayIndex == day }.sortedBy { parseTime(it.horaInicio) }
+        val pick = if (offset == 0) {
+            candidates.firstOrNull { (parseTime(it.horaFin) ?: parseTime(it.horaInicio))?.let { end -> end > nowTime } == true }
+        } else {
+            candidates.firstOrNull()
         }
-        item {
-            PermissionStrip(
-                accent = Color(0xFFF59E0B),
-                icon = "MD",
-                title = "Permiso Médico",
-                subtitle = "Solicitado el 12 Oct",
-                chip = "En Directorio",
-                chipBg = Color(0xFFFFF6E8),
-                chipFg = Color(0xFFB45309),
-                id = "ID: #4029",
-                onClick = { onOpenPermission("Alex Johnson", "Permiso Médico", false) }
-            )
+        if (pick != null) {
+            val start = parseTime(pick.horaInicio)
+            val label = when {
+                offset == 0 && start != null && start <= nowTime -> "EN CURSO"
+                offset == 0 -> "HOY"
+                offset == 1 -> "MAÑANA"
+                else -> DAY_NAMES[day].uppercase()
+            }
+            return pick to label
         }
-        item {
-            PermissionStrip(
-                accent = GreenText,
-                icon = "EV",
-                title = "Evento Familiar",
-                subtitle = "Solicitado el 20 Sep",
-                chip = "Aprobado",
-                chipBg = GreenSoft,
-                chipFg = GreenText,
-                id = "ID: #3901",
-                onClick = { onOpenPermission("Alex Johnson", "Evento Familiar", false) }
-            )
+    }
+    return null
+}
+
+@Composable
+private fun NextClassCard(next: Pair<ClassSession, String>?, loading: Boolean, onOpenSchedule: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 20.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(HeroColor)
+            .clickable(onClick = onOpenSchedule)
+            .padding(20.dp)
+    ) {
+        Text("Tu próxima clase", color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp)
+        Spacer(Modifier.height(6.dp))
+        when {
+            next != null -> {
+                val (session, label) = next
+                Pill(label, Color.White.copy(alpha = 0.16f), Color.White)
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    session.materia,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 22.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+                val time = listOf(session.horaInicio, session.horaFin).filter { it.isNotBlank() }.joinToString(" – ")
+                val place = listOf(time, session.aula).filter { it.isNotBlank() }.joinToString(" • ")
+                if (place.isNotBlank()) Text(place, color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
+                if (session.docenteNombre.isNotBlank()) {
+                    Text(session.docenteNombre, color = Color.White.copy(alpha = 0.7f), fontSize = 13.sp)
+                }
+            }
+            loading -> Text("Cargando…", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            else -> {
+                Text("Sin clases registradas", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Text(
+                    "Tu horario aparecerá aquí cuando esté cargado en el SIU.",
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontSize = 13.sp
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun QuickTile(label: String, onClick: () -> Unit, modifier: Modifier) {
+private fun TodayClassRow(session: ClassSession) {
+    WhiteCard(modifier = Modifier.padding(horizontal = 20.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                Modifier
+                    .size(width = 64.dp, height = 56.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(SoftPurple),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(session.horaInicio.ifBlank { "--:--" }, color = PrimaryColor, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                if (session.horaFin.isNotBlank()) Text(session.horaFin, color = MutedColor, fontSize = 12.sp)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(session.materia, fontWeight = FontWeight.Bold, color = InkColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                val detail = listOf(session.aula, session.docenteNombre).filter { it.isNotBlank() }.joinToString(" • ")
+                if (detail.isNotBlank()) Text(detail, color = MutedColor, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickTile(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(Color.White)
-            .clickable(onClick = onClick)
-            .padding(vertical = 18.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .clickable(role = Role.Button, onClick = onClick)
+            .semantics(mergeDescendants = true) { }
+            .heightIn(min = 88.dp)
+            .padding(vertical = 16.dp, horizontal = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            Modifier.size(8.dp).clip(CircleShape).background(PrimaryColor)
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(label, color = InkColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
-private fun PermissionStrip(
-    accent: Color,
-    icon: String,
-    title: String,
-    subtitle: String,
-    chip: String,
-    chipBg: Color,
-    chipFg: Color,
-    id: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(Color.White)
-            .clickable(onClick = onClick)
-    ) {
-        Box(Modifier.width(6.dp).height(92.dp).background(accent))
-        Column(Modifier.padding(14.dp).weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(icon, color = accent, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(8.dp))
-                Text(title, fontWeight = FontWeight.Bold, color = InkColor, modifier = Modifier.weight(1f))
-                Pill(chip, chipBg, chipFg)
-            }
-            Spacer(Modifier.height(8.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(subtitle, color = MutedColor, fontSize = 12.sp)
-                Text(id, color = MutedColor, fontSize = 12.sp)
-            }
-        }
+        Icon(icon, contentDescription = null, tint = PrimaryColor, modifier = Modifier.size(24.dp))
+        Spacer(Modifier.height(8.dp))
+        Text(label, color = InkColor, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, maxLines = 1)
     }
 }

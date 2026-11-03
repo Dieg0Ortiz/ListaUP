@@ -62,7 +62,10 @@ import com.example.myapplication.presentation.theme.PrimaryColor
 import com.example.myapplication.presentation.theme.RoseSoft
 import com.example.myapplication.presentation.theme.RoseText
 import com.example.myapplication.presentation.theme.SoftPurple
+import com.example.myapplication.core.longLabel
+import com.example.myapplication.core.today
 import com.example.myapplication.presentation.ui.design.AppDialog
+import com.example.myapplication.presentation.ui.design.PlatformBackHandler
 import com.example.myapplication.presentation.ui.design.AppIcons
 import com.example.myapplication.presentation.ui.design.AvatarCircle
 import com.example.myapplication.presentation.ui.design.IconBubble
@@ -78,7 +81,9 @@ fun AttendanceScreen(
     grupoId: String,
     materia: String,
     viewModel: AttendanceViewModel = koinViewModel(),
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    // Tras enviar: abre un inicio nuevo para que el promedio ya incluya esta lista
+    onFinished: () -> Unit = onBack
 ) {
     val state by viewModel.uiState.collectAsState()
     var confirmSend by remember { mutableStateOf(false) }
@@ -104,15 +109,20 @@ fun AttendanceScreen(
     }
     val marked = rows.count { it.status != null || it.hasPermission }
     val pending = rows.size - marked
+    // Hay marcas sin enviar: salir sin querer perdería la lista
+    val dirty = !state.isSubmitted && rows.any { it.status != null && !it.hasPermission }
+    var confirmLeave by remember { mutableStateOf(false) }
+    val leave = { if (dirty) confirmLeave = true else onBack() }
+    PlatformBackHandler(enabled = dirty && !state.isSubmitting) { confirmLeave = true }
 
     if (state.isSubmitted) {
-        SubmittedView(materia, rows, onBack)
+        SubmittedView(materia, rows, onFinished)
         return
     }
 
     Box(Modifier.fillMaxSize().background(BackgroundColor)) {
         Column(Modifier.fillMaxSize()) {
-            TopBar(title = materia.ifBlank { "Pase de lista" }, onBack = onBack)
+            TopBar(title = materia.ifBlank { "Pase de lista" }, onBack = leave)
             if (rows.isEmpty()) {
                 EmptyState(
                     loading = state.isLoading,
@@ -127,7 +137,7 @@ fun AttendanceScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 item {
-                    Text("Sesión de hoy • Grupo $grupoId", color = MutedColor, fontSize = 13.sp)
+                    Text("Lista del ${today().longLabel()} • Grupo $grupoId", color = MutedColor, fontSize = 13.sp)
                     Spacer(Modifier.height(10.dp))
                     SummaryRow(rows)
                 }
@@ -214,6 +224,19 @@ fun AttendanceScreen(
                     viewModel.submitAttendance()
                 },
                 onDismiss = { confirmSend = false }
+            )
+        }
+        if (confirmLeave) {
+            AppDialog(
+                title = "¿Salir sin enviar?",
+                body = "La lista no se ha enviado. Si sales, se perderán las marcas que hiciste.",
+                confirm = "Salir",
+                dismiss = "Seguir aquí",
+                onConfirm = {
+                    confirmLeave = false
+                    onBack()
+                },
+                onDismiss = { confirmLeave = false }
             )
         }
     }
