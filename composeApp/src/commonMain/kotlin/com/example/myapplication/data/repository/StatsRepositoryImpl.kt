@@ -42,7 +42,9 @@ class StatsRepositoryImpl(
                 grupoId = grupoId,
                 materia = rows.first().materia,
                 sessions = rows.size,
-                attendanceRate = rows.rate()
+                attendanceRate = rows.rate(),
+                attended = rows.sumOf { it.presentes + it.retardos + it.justificados },
+                expected = rows.sumOf { (it.totalAlumnos - it.inactivos).coerceAtLeast(0) }
             )
         }.sortedBy { it.attendanceRate ?: 101.0 }
     }

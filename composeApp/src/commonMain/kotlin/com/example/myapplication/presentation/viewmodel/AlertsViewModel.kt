@@ -62,13 +62,11 @@ data class ReportsUiState(
     val atRisk: List<Alert> = emptyList(),
     val error: String? = null
 ) {
-    /** Promedio ponderado por sesiones de los grupos con datos. */
+    /** Asistencias entre alumnos esperados de todas las listas: cada alumno pesa lo mismo. */
     val overallRate: Double?
         get() {
-            val withData = groups.filter { it.attendanceRate != null && it.sessions > 0 }
-            val sessions = withData.sumOf { it.sessions }
-            if (sessions == 0) return null
-            return withData.sumOf { it.attendanceRate!! * it.sessions } / sessions
+            val expected = groups.sumOf { it.expected }
+            return if (expected == 0) null else groups.sumOf { it.attended } * 100.0 / expected
         }
 }
 

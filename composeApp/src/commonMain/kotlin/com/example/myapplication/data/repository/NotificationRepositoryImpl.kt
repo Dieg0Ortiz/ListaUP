@@ -17,8 +17,8 @@ class NotificationRepositoryImpl(
         apiService.getNotifications(ownerId, forStudent).map {
             AppNotification(
                 id = it.id,
-                title = it.title,
-                message = it.message,
+                title = it.title.humanizeStatus(),
+                message = it.message.humanizeStatus(),
                 type = it.type,
                 isRead = it.isRead != 0,
                 createdAt = it.createdAt,
@@ -31,6 +31,13 @@ class NotificationRepositoryImpl(
         val (ownerId, forStudent) = owner()
         apiService.markNotificationsRead(ownerId, forStudent)
     }
+
+    // La API arma los avisos con el estado en inglés ("ha sido REJECTED")
+    private fun String.humanizeStatus(): String = this
+        .replace("APPROVED", "aprobada")
+        .replace("REJECTED", "rechazada")
+        .replace("PENDING_DIRECTOR", "en revisión de Dirección")
+        .replace("PENDING_TUTOR", "en revisión del tutor")
 
     private fun owner(): Pair<String, Boolean> {
         val user = sessionManager.getUser() ?: throw UserFacingException("Tu sesión terminó. Vuelve a iniciar sesión.")

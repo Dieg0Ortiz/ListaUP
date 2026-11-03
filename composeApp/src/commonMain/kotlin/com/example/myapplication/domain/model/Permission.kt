@@ -62,7 +62,10 @@ data class GroupAttendanceStats(
     val grupoId: String,
     val materia: String,
     val sessions: Int,
-    val attendanceRate: Double?
+    val attendanceRate: Double?,
+    /** Asistencias (presente, retardo o permiso) y alumnos esperados sumando todas las listas. */
+    val attended: Int = 0,
+    val expected: Int = 0
 )
 
 /** Asistencia promedio de cada día de la semana actual (null = sin listas ese día). */

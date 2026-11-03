@@ -100,7 +100,7 @@ fun PermissionDetailScreen(
                 ) {
                     Header(permission)
                     Spacer(Modifier.height(16.dp))
-                    Timeline(permission.status)
+                    Timeline(permission)
                     Spacer(Modifier.height(16.dp))
                     WhiteCard {
                         InfoLine("Tipo", if (permission.fullDays) "Días completos" else "Por horas")
@@ -205,9 +205,12 @@ private fun Header(permission: Permission) {
     }
 }
 
-/** Solicitado → Tutor → Dirección → resultado. */
+/** Solicitado → Tutor → Dirección → resultado. Si el tutor rechaza, Dirección no participa. */
 @Composable
-private fun Timeline(status: PermissionStatus) {
+private fun Timeline(permission: Permission) {
+    val status = permission.status
+    // El tutor deja su motivo en tutor_comment; si Dirección no comentó, el rechazo fue del tutor
+    val rejectedByTutor = status == PermissionStatus.REJECTED && permission.directorComment.isNullOrBlank()
     val reached = when (status) {
         PermissionStatus.PENDING_TUTOR -> 1
         PermissionStatus.PENDING_DIRECTOR -> 2
@@ -217,16 +220,17 @@ private fun Timeline(status: PermissionStatus) {
     val steps = listOf(
         "Solicitado",
         "Revisión del tutor",
-        "Autorización de Dirección",
+        if (rejectedByTutor) "Autorización de Dirección (no aplica)" else "Autorización de Dirección",
         when (status) {
             PermissionStatus.APPROVED -> "Aprobado"
-            PermissionStatus.REJECTED -> "Rechazado"
+            PermissionStatus.REJECTED -> if (rejectedByTutor) "Rechazado por el tutor" else "Rechazado por Dirección"
             else -> "Resultado"
         }
     )
     WhiteCard {
         steps.forEachIndexed { index, title ->
-            val done = index < reached || (index == 3 && status.isFinal)
+            val skipped = rejectedByTutor && index == 2
+            val done = !skipped && (index < reached || (index == 3 && status.isFinal))
             val current = index == reached && !status.isFinal
             val color = when {
                 index == 3 && status == PermissionStatus.REJECTED -> RoseText
