@@ -1,5 +1,6 @@
 package com.example.myapplication.data.remote
 
+import com.example.myapplication.core.apiBaseUrl
 import com.example.myapplication.data.local.SessionManager
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -11,7 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 object ApiClient {
-    const val BASE_URL = "https://platinum.upchiapas.edu.mx"
+    val BASE_URL = apiBaseUrl
 
     fun create(sessionManager: SessionManager): HttpClient {
         return HttpClient {
@@ -37,7 +38,6 @@ object ApiClient {
 
             defaultRequest {
                 url(BASE_URL)
-                contentType(ContentType.Application.FormUrlEncoded)
                 val cookie = sessionManager.getSession()
                 if (cookie != null) {
                     header(HttpHeaders.Cookie, cookie)

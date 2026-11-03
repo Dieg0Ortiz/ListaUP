@@ -12,6 +12,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -73,15 +81,11 @@ fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+        Text(title, color = InkColor, fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.semantics { heading() })
         if (action != null && onAction != null) {
-            Text(
-                action,
-                color = PrimaryColor,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable(onClick = onAction)
-            )
+            TextButton(onClick = onAction) {
+                Text(action, color = PrimaryColor, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            }
         }
     }
 }
@@ -91,11 +95,12 @@ fun PrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    loading: Boolean = false
 ) {
     Button(
         onClick = onClick,
-        enabled = enabled,
+        enabled = enabled && !loading,
         modifier = modifier.fillMaxWidth().height(54.dp),
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.buttonColors(
@@ -105,6 +110,10 @@ fun PrimaryButton(
             disabledContentColor = Color.White
         )
     ) {
+        if (loading) {
+            CircularProgressIndicator(color = Color.White, strokeWidth = 2.5.dp, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(12.dp))
+        }
         Text(text, fontWeight = FontWeight.Bold, fontSize = 16.sp)
     }
 }
@@ -182,14 +191,34 @@ fun IconBubble(
 }
 
 @Composable
+fun IconBubble(
+    icon: ImageVector,
+    background: Color,
+    modifier: Modifier = Modifier,
+    size: Dp = 44.dp,
+    tint: Color = PrimaryColor
+) {
+    Box(
+        modifier
+            .size(size)
+            .clip(RoundedCornerShape(14.dp))
+            .background(background),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(size * 0.5f))
+    }
+}
+
+@Composable
 fun AvatarCircle(
     initials: String,
     modifier: Modifier = Modifier,
     background: Color = SoftPurple,
-    content: Color = PrimaryColor
+    content: Color = PrimaryColor,
+    size: Dp = 48.dp
 ) {
     Box(
-        modifier.size(48.dp).clip(CircleShape).background(background),
+        modifier.size(size).clip(CircleShape).background(background),
         contentAlignment = Alignment.Center
     ) {
         Text(initials, color = content, fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -204,29 +233,28 @@ fun TopBar(
     onAction: (() -> Unit)? = null
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 56.dp)
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (onBack != null) {
-            Text(
-                "‹",
-                color = PrimaryColor,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Light,
-                modifier = Modifier
-                    .clickable(onClick = onBack)
-                    .padding(horizontal = 8.dp)
-            )
+            IconButton(onClick = onBack) {
+                Icon(AppIcons.Back, contentDescription = "Regresar", tint = InkColor)
+            }
         } else {
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(48.dp))
         }
         Text(
             title,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f).semantics { heading() },
             textAlign = TextAlign.Center,
             color = InkColor,
             fontWeight = FontWeight.Bold,
-            fontSize = 18.sp
+            fontSize = 18.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         if (action != null && onAction != null) {
             TextButton(onClick = onAction) {
@@ -245,12 +273,13 @@ fun AppDialog(
     confirm: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
+    dismiss: String? = null,
     content: @Composable () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0x66000000))
+            .background(Color(0x80000000))
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.Center
     ) {
@@ -270,15 +299,16 @@ fun AppDialog(
             }
             content()
             Spacer(Modifier.height(8.dp))
-            Text(
-                confirm,
-                color = PrimaryColor,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .align(Alignment.End)
-                    .clickable(onClick = onConfirm)
-                    .padding(8.dp)
-            )
+            Row(modifier = Modifier.align(Alignment.End)) {
+                if (dismiss != null) {
+                    TextButton(onClick = onDismiss) {
+                        Text(dismiss, color = MutedColor, fontWeight = FontWeight.SemiBold)
+                    }
+                }
+                TextButton(onClick = onConfirm) {
+                    Text(confirm, color = PrimaryColor, fontWeight = FontWeight.Bold)
+                }
+            }
         }
     }
 }

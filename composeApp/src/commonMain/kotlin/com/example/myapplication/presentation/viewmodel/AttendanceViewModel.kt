@@ -16,6 +16,9 @@ data class AttendanceUiState(
     val students: List<StudentAttendance> = emptyList(),
     val searchQuery: String = "",
     val selectedGroup: String = "",
+    val materia: String = "",
+    /** Alumnos que el docente ya marcó; los demás se enviarán como ausentes. */
+    val marked: Set<String> = emptySet(),
     val registeredCount: Int = 0,
     val totalCount: Int = 0,
     val isSubmitting: Boolean = false,
@@ -31,8 +34,8 @@ class AttendanceViewModel(
     private val _uiState = MutableStateFlow(AttendanceUiState())
     val uiState: StateFlow<AttendanceUiState> = _uiState.asStateFlow()
 
-    fun loadStudents(grupoId: String) {
-        _uiState.value = _uiState.value.copy(isLoading = true, selectedGroup = grupoId)
+    fun loadStudents(grupoId: String, materia: String) {
+        _uiState.value = AttendanceUiState(isLoading = true, selectedGroup = grupoId, materia = materia)
         viewModelScope.launch {
             val result = getStudentsOfGroupUseCase(grupoId)
             result.fold(
@@ -41,6 +44,7 @@ class AttendanceViewModel(
                         isLoading = false,
                         students = students,
                         totalCount = students.size,
+                        marked = students.filter { it.hasPermission }.map { it.studentId }.toSet(),
                         registeredCount = 0
                     )
                 },
@@ -62,6 +66,7 @@ class AttendanceViewModel(
         val registered = updated.count { it.status != AttendanceStatus.AUSENTE }
         _uiState.value = _uiState.value.copy(
             students = updated,
+            marked = _uiState.value.marked + studentId,
             registeredCount = registered
         )
     }
@@ -76,6 +81,7 @@ class AttendanceViewModel(
         }
         _uiState.value = _uiState.value.copy(
             students = updated,
+            marked = updated.map { it.studentId }.toSet(),
             registeredCount = updated.count { it.status != AttendanceStatus.AUSENTE }
         )
     }
@@ -91,9 +97,10 @@ class AttendanceViewModel(
 
     fun submitAttendance() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isSubmitting = true)
+            _uiState.value = _uiState.value.copy(isSubmitting = true, error = null)
             val result = submitAttendanceUseCase(
                 _uiState.value.selectedGroup,
+                _uiState.value.materia,
                 _uiState.value.students
             )
             result.fold(

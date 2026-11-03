@@ -42,15 +42,19 @@ class ProfessorDashboardViewModel(
             result.fold(
                 onSuccess = { groups ->
                     val todayClasses = groups.map { group ->
+                        // El SIU manda el horario como "Lunes 08:00-10:00"
+                        val horario = group.horario.trim()
+                        val dia = horario.substringBefore(" ", "").takeIf { it.firstOrNull()?.isLetter() == true }.orEmpty()
+                        val horas = horario.removePrefix(dia).trim()
                         ClassSession(
                             id = group.grupoId,
                             materia = group.materia,
                             aula = group.aula,
                             grupo = group.nombre,
                             grupoId = group.grupoId,
-                            horaInicio = group.horario.substringBefore("-").trim(),
-                            horaFin = group.horario.substringAfter("-").trim(),
-                            dia = "Hoy"
+                            horaInicio = horas.substringBefore("-").trim(),
+                            horaFin = horas.substringAfter("-", "").trim(),
+                            dia = dia
                         )
                     }
                     _uiState.value = _uiState.value.copy(

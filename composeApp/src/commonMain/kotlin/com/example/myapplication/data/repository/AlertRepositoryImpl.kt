@@ -1,39 +1,48 @@
 package com.example.myapplication.data.repository
 
+import com.example.myapplication.core.AppConfig
+import com.example.myapplication.data.local.SessionManager
+import com.example.myapplication.data.remote.ApiService
 import com.example.myapplication.domain.model.Alert
 import com.example.myapplication.domain.repository.AlertRepository
 
 class AlertRepositoryImpl(
-    private val attendanceRepository: AttendanceRepositoryImpl
+    private val apiService: ApiService,
+    private val sessionManager: SessionManager
 ) : AlertRepository {
 
     override suspend fun getAlertsByThreshold(grupoId: String, threshold: Double): Result<List<Alert>> {
         return try {
-            val alerts = listOf(
-                Alert(
-                    id = "alert_sample_1",
-                    studentId = "1001",
-                    studentName = "Juan Pérez García",
-                    matricula = "221001",
-                    materia = "Programación Avanzada",
-                    absencePercentage = 22.0,
-                    threshold = threshold,
-                    grupoId = grupoId
-                ),
-                Alert(
-                    id = "alert_sample_2",
-                    studentId = "1002",
-                    studentName = "María López Hernández",
-                    matricula = "221002",
-                    materia = "Bases de Datos",
-                    absencePercentage = 25.0,
-                    threshold = threshold,
-                    grupoId = grupoId
-                )
-            ).filter { it.absencePercentage >= threshold }
+            // Sin grupo específico se consultan todos los grupos del docente en sesión
+            val groups = if (grupoId.isNotBlank()) {
+                listOf(grupoId to "")
+            } else {
+                val docenteId = sessionManager.getUser()?.docenteId.orEmpty()
+                if (docenteId.isBlank()) return Result.success(emptyList())
+                apiService.getProfessorGroups(AppConfig.PERIODO_ID, docenteId).map { it.grupoId to it.materia }
+            }
+
+            val alerts = groups.flatMap { (id, materia) ->
+                apiService.getAlerts(id, UMBRAL_FALTAS).alumnosEnRiesgo.map { dto ->
+                    Alert(
+                        id = "${id}_${dto.alumnoId}",
+                        studentId = dto.alumnoId,
+                        studentName = dto.nombre,
+                        matricula = dto.matricula,
+                        materia = materia,
+                        absencePercentage = 100.0 - dto.porcentajeAsistencia,
+                        threshold = threshold,
+                        grupoId = id
+                    )
+                }
+            }.filter { it.absencePercentage >= threshold }
             Result.success(alerts)
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    private companion object {
+        const val UMBRAL_FALTAS = 3
     }
 }

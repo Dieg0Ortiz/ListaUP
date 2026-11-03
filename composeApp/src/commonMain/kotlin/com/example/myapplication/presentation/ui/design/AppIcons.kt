@@ -1,0 +1,69 @@
+package com.example.myapplication.presentation.ui.design
+
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
+import androidx.compose.ui.unit.dp
+
+/** Íconos de la app: todos son Material (relleno, 24dp) para mantener una sola familia visual. */
+object AppIcons {
+    val Back = Icons.AutoMirrored.Filled.ArrowBack
+    val Home = Icons.Filled.Home
+    val List = Icons.AutoMirrored.Filled.List
+    val Calendar = Icons.Filled.DateRange
+    val User = Icons.Filled.Person
+    val Lock = Icons.Filled.Lock
+    val Bell = Icons.Filled.Notifications
+    val Search = Icons.Filled.Search
+    val Check = Icons.Filled.Check
+    val CheckCircle = Icons.Filled.CheckCircle
+    val Close = Icons.Filled.Close
+    val Warning = Icons.Filled.Warning
+    val Info = Icons.Filled.Info
+    val Refresh = Icons.Filled.Refresh
+
+    // Los siguientes no vienen en material-icons-core; son los trazos oficiales de Material.
+    val Document: ImageVector by lazy {
+        material(
+            "Description",
+            "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+        )
+    }
+    val Chart: ImageVector by lazy {
+        material(
+            "Assessment",
+            "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"
+        )
+    }
+    val Clock: ImageVector by lazy {
+        material(
+            "Schedule",
+            "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"
+        )
+    }
+
+    private fun material(name: String, path: String): ImageVector =
+        ImageVector.Builder(
+            name = name,
+            defaultWidth = 24.dp,
+            defaultHeight = 24.dp,
+            viewportWidth = 24f,
+            viewportHeight = 24f
+        ).addPath(pathData = addPathNodes(path), fill = SolidColor(Color.Black)).build()
+}

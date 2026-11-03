@@ -16,6 +16,7 @@ material3 = "1.10.0-alpha05"
 ktor = "3.1.1"
 koin = "4.2.2"
 kotlinxSerialization = "1.8.0"
+kotlinxDatetime = "0.7.1"
 composeNavigation = "2.9.0-alpha14"
 
 [libraries]
@@ -54,6 +55,8 @@ koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
 
 # Kotlinx Serialization
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }
+compose-materialIconsCore = { module = "org.jetbrains.compose.material:material-icons-core", version = "1.7.3" }
 
 # Navigation
 compose-navigation = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "composeNavigation" }

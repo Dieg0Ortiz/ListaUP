@@ -1,5 +1,6 @@
 package com.example.myapplication.domain.model
 
+import com.example.myapplication.core.AppConfig
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,6 +10,6 @@ data class Group(
     val materia: String = "",
     val aula: String = "",
     val horario: String = "",
-    val periodoId: String = "62",
+    val periodoId: String = AppConfig.PERIODO_ID,
     val docenteNombre: String = ""
 )

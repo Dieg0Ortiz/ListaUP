@@ -10,7 +10,8 @@ data class DashClass(
     val fin: String,
     val grupoId: String,
     val badge: String,
-    val live: Boolean
+    val live: Boolean,
+    val dia: String = ""
 )
 
 data class RecentClass(

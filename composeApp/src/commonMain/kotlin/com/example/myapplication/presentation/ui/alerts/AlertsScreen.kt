@@ -16,7 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
+import com.example.myapplication.presentation.ui.design.AppIcons
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myapplication.domain.model.Alert
 import com.example.myapplication.presentation.theme.BackgroundColor
-import com.example.myapplication.presentation.theme.FieldColor
 import com.example.myapplication.presentation.theme.InkColor
 import com.example.myapplication.presentation.theme.MutedColor
 import com.example.myapplication.presentation.theme.PrimaryColor
@@ -61,12 +65,7 @@ fun AlertsScreen(
         viewModel.loadAlerts()
     }
 
-    val alerts = state.alerts.ifEmpty {
-        listOf(
-            Alert(id = "a1", studentName = "Maria Garcia", materia = "Matemáticas", absencePercentage = 20.0),
-            Alert(id = "a2", studentName = "Juan Pérez", materia = "Física", absencePercentage = 15.0)
-        )
-    }
+    val alerts = state.alerts
 
     Column(Modifier.fillMaxSize().background(BackgroundColor)) {
         TopBar("Centro de notificaciones", onBack = onBack)
@@ -85,7 +84,8 @@ fun AlertsScreen(
                         .weight(1f)
                         .clip(RoundedCornerShape(12.dp))
                         .background(if (selected) SoftPurple else Color.Transparent)
-                        .clickable { tab = label }
+                        .selectable(selected = selected, role = Role.Tab) { tab = label }
+                        .heightIn(min = 44.dp)
                         .padding(vertical = 10.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -102,11 +102,24 @@ fun AlertsScreen(
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text("ALERTAS DE ASISTENCIA", color = MutedColor, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                         Text(
-                            "2 NUEVAS",
+                            "${alerts.size} NUEVAS",
                             color = Color.White,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.clip(RoundedCornerShape(50)).background(RoseText).padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+                if (alerts.isEmpty()) {
+                    item {
+                        Text(
+                            when {
+                                state.isLoading -> "Cargando alertas…"
+                                state.error != null -> "No se pudieron cargar las alertas: ${state.error}"
+                                else -> "Sin alumnos en riesgo por ahora."
+                            },
+                            color = MutedColor,
+                            fontSize = 13.sp
                         )
                     }
                 }
@@ -128,38 +141,27 @@ fun AlertsScreen(
 
 @Composable
 private fun AlertCard(alert: Alert) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp))
-            .background(Color.White)
-    ) {
-        Box(Modifier.width(6.dp).height(150.dp).background(RoseText))
-        Column(Modifier.padding(14.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                IconBubble("!", RoseSoft, size = 36.dp)
-                Spacer(Modifier.width(10.dp))
-                Column(Modifier.weight(1f)) {
-                    Text(alert.studentName, fontWeight = FontWeight.Bold, color = InkColor)
-                    Text(
-                        "Ha alcanzado el ${alert.absencePercentage.toInt()}% de inasistencias en ${alert.materia}.",
-                        color = InkColor,
-                        fontSize = 13.sp
-                    )
-                }
+    val percent = alert.absencePercentage.toInt().coerceIn(0, 100)
+    WhiteCard {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconBubble(AppIcons.Warning, RoseSoft, size = 40.dp, tint = RoseText)
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(alert.studentName, fontWeight = FontWeight.Bold, color = InkColor)
+                Text(alert.materia, color = MutedColor, fontSize = 13.sp)
             }
-            Spacer(Modifier.height(10.dp))
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(FieldColor)
-                    .padding(vertical = 10.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Ver Reporte de Asistencia", color = InkColor, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-            }
+            Text("$percent%", color = RoseText, fontWeight = FontWeight.Bold, fontSize = 18.sp)
         }
+        Spacer(Modifier.height(12.dp))
+        LinearProgressIndicator(
+            progress = { percent / 100f },
+            modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(6.dp)),
+            color = RoseText,
+            trackColor = RoseSoft,
+            drawStopIndicator = {}
+        )
+        Spacer(Modifier.height(6.dp))
+        Text("de inasistencias en la materia", color = MutedColor, fontSize = 12.sp)
     }
 }
 

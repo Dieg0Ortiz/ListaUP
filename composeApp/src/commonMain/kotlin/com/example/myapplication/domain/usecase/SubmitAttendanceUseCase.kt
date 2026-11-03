@@ -6,10 +6,10 @@ import com.example.myapplication.domain.repository.AttendanceRepository
 class SubmitAttendanceUseCase(
     private val attendanceRepository: AttendanceRepository
 ) {
-    suspend operator fun invoke(grupoId: String, attendances: List<StudentAttendance>): Result<Boolean> {
+    suspend operator fun invoke(grupoId: String, materia: String, attendances: List<StudentAttendance>): Result<Boolean> {
         if (attendances.isEmpty()) {
             return Result.failure(Exception("No hay estudiantes para registrar asistencia."))
         }
-        return attendanceRepository.submitAttendance(grupoId, attendances)
+        return attendanceRepository.submitAttendance(grupoId, materia, attendances)
     }
 }

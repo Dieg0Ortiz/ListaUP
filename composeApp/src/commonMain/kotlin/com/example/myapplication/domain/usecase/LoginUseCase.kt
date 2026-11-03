@@ -1,25 +1,27 @@
 package com.example.myapplication.domain.usecase
 
 import com.example.myapplication.domain.model.User
-import com.example.myapplication.domain.model.UserRole
 import com.example.myapplication.domain.repository.AuthRepository
 
 class LoginUseCase(
     private val authRepository: AuthRepository
 ) {
-    suspend operator fun invoke(credential: String, password: String): Result<User> {
-        val studentResult = authRepository.loginStudent(credential, password)
-        if (studentResult.isSuccess) {
-            return studentResult
+    // El rol lo elige el usuario en el login: la API de alumnos no rechaza
+    // credenciales de docente, así que no se puede probar uno y luego el otro.
+    suspend operator fun invoke(credential: String, password: String, asProfessor: Boolean): Result<User> {
+        val result = if (asProfessor) {
+            authRepository.loginProfessor(credential, password)
+        } else {
+            authRepository.loginStudent(credential, password)
         }
-
-        val professorResult = authRepository.loginProfessor(credential, password)
-        if (professorResult.isSuccess) {
-            return professorResult
+        return result.recoverCatching { e ->
+            throw Exception(
+                if (e.message?.contains("(401)") == true) {
+                    "Credenciales inválidas. Verifica tu usuario/matrícula y contraseña."
+                } else {
+                    "No se pudo conectar con el servidor: ${e.message}"
+                }
+            )
         }
-
-        return Result.failure(
-            Exception("Credenciales inválidas. Verifica tu correo/matrícula y contraseña.")
-        )
     }
 }

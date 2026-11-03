@@ -95,7 +95,7 @@ class LoginViewModel(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = loginUseCase(state.credential, state.password)
+            val result = loginUseCase(state.credential, state.password, state.asProfessor)
             result.fold(
                 onSuccess = { user ->
                     _uiState.value = _uiState.value.copy(

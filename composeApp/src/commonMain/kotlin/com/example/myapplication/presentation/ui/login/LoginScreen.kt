@@ -1,7 +1,6 @@
 package com.example.myapplication.presentation.ui.login
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +9,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material3.Icon
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.semantics.Role
+import com.example.myapplication.presentation.theme.RoseText
+import com.example.myapplication.presentation.ui.design.AppIcons
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +28,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -29,6 +38,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +67,14 @@ fun LoginScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var dialog by remember { mutableStateOf<String?>(null) }
+    val scroll = rememberScrollState()
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
+
+    // Con el teclado abierto, deja visible el botón de iniciar sesión
+    LaunchedEffect(imeVisible) {
+        // maxValue crece mientras el teclado termina de abrir
+        if (imeVisible) snapshotFlow { scroll.maxValue }.collect { scroll.scrollTo(it) }
+    }
 
     LaunchedEffect(state.isLoggedIn, state.user) {
         if (state.isLoggedIn && state.user != null) {
@@ -65,6 +83,11 @@ fun LoginScreen(
     }
 
     val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedLabelColor = PrimaryColor,
+        unfocusedLabelColor = MutedColor,
+        errorBorderColor = RoseText,
+        errorContainerColor = FieldColor,
+        errorLabelColor = RoseText,
         focusedBorderColor = PrimaryColor,
         unfocusedBorderColor = Color.Transparent,
         focusedContainerColor = FieldColor,
@@ -78,7 +101,8 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .imePadding()
+            .verticalScroll(scroll)
             .padding(horizontal = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -109,6 +133,7 @@ fun LoginScreen(
                 .clip(RoundedCornerShape(16.dp))
                 .background(FieldColor)
                 .padding(4.dp)
+                .selectableGroup()
         ) {
             RoleChip(
                 label = "Alumno",
@@ -129,27 +154,32 @@ fun LoginScreen(
             value = state.credential,
             onValueChange = viewModel::onCredentialChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Correo institucional", color = MutedColor) },
+            label = { Text(if (state.asProfessor) "Usuario docente" else "Matrícula") },
+            leadingIcon = { Icon(AppIcons.User, contentDescription = null, tint = MutedColor) },
+            isError = state.error != null,
             singleLine = true,
             shape = RoundedCornerShape(16.dp),
             colors = fieldColors,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii, imeAction = ImeAction.Next)
         )
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = state.password,
             onValueChange = viewModel::onPasswordChange,
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Contraseña", color = MutedColor) },
+            label = { Text("Contraseña") },
+            leadingIcon = { Icon(AppIcons.Lock, contentDescription = null, tint = MutedColor) },
             trailingIcon = {
-                Text(
-                    if (state.passwordVisible) "Ocultar" else "Ver",
-                    color = PrimaryColor,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { viewModel.togglePasswordVisibility() }.padding(8.dp)
-                )
+                TextButton(onClick = viewModel::togglePasswordVisibility) {
+                    Text(
+                        if (state.passwordVisible) "Ocultar" else "Mostrar",
+                        color = PrimaryColor,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             },
+            isError = state.error != null,
             singleLine = true,
             visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             shape = RoundedCornerShape(16.dp),
@@ -159,33 +189,31 @@ fun LoginScreen(
         )
 
         if (state.error != null) {
-            Spacer(Modifier.height(8.dp))
-            Text(state.error ?: "", color = Color(0xFFB00020), fontSize = 13.sp, modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Icon(AppIcons.Warning, contentDescription = null, tint = RoseText, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(6.dp))
+                Text(state.error ?: "", color = RoseText, fontSize = 13.sp)
+            }
         }
 
         Spacer(Modifier.height(8.dp))
-        Text(
-            "¿Olvidaste tu contraseña?",
-            color = PrimaryColor,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier
-                .align(Alignment.End)
-                .clickable { dialog = "Para restablecer tu contraseña, escribe a soporte.it@institucional.edu.mx desde tu correo institucional." }
-                .padding(vertical = 8.dp)
-        )
-        Spacer(Modifier.height(12.dp))
-        if (state.isLoading) {
-            CircularProgressIndicator(color = PrimaryColor)
-        } else {
-            PrimaryButton("Iniciar sesión", onClick = { viewModel.login() })
-        }
-        Spacer(Modifier.height(36.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable {
-                dialog = "Soporte IT está disponible de lunes a viernes, 8:00 a 16:00. Correo: soporte.it@institucional.edu.mx"
-            }
+        TextButton(
+            onClick = { dialog = "Para restablecer tu contraseña, escribe a soporte.it@institucional.edu.mx desde tu correo institucional." },
+            modifier = Modifier.align(Alignment.End)
         ) {
+            Text("¿Olvidaste tu contraseña?", color = PrimaryColor, fontWeight = FontWeight.SemiBold)
+        }
+        Spacer(Modifier.height(12.dp))
+        PrimaryButton(
+            if (state.isLoading) "Entrando…" else "Iniciar sesión",
+            onClick = { viewModel.login() },
+            loading = state.isLoading
+        )
+        Spacer(Modifier.height(28.dp))
+        TextButton(onClick = {
+            dialog = "Soporte IT está disponible de lunes a viernes, 8:00 a 16:00. Correo: soporte.it@institucional.edu.mx"
+        }) {
             Text("Contactar soporte", color = MutedColor, fontWeight = FontWeight.Medium)
         }
         Spacer(Modifier.height(32.dp))
@@ -213,7 +241,7 @@ private fun RoleChip(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .background(if (selected) PrimaryColor else Color.Transparent)
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.Tab, onClick = onClick)
             .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center
     ) {
