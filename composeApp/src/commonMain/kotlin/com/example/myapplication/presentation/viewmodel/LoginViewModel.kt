@@ -17,7 +17,6 @@ data class LoginUiState(
     val credential: String = "",
     val password: String = "",
     val passwordVisible: Boolean = false,
-    val asProfessor: Boolean = false,
     val error: String? = null,
     val user: User? = null,
     val isLoggedIn: Boolean = false
@@ -50,10 +49,6 @@ class LoginViewModel(
         _uiState.value = _uiState.value.copy(passwordVisible = !_uiState.value.passwordVisible)
     }
 
-    fun setProfessorMode(asProfessor: Boolean) {
-        _uiState.value = _uiState.value.copy(asProfessor = asProfessor, error = null)
-    }
-
     fun resetAfterLogout() {
         _uiState.value = LoginUiState()
     }
@@ -65,9 +60,11 @@ class LoginViewModel(
             return
         }
 
-        // Acceso demo solo en compilaciones de desarrollo; en producción "demo" va a la API como cualquier usuario
-        if (isDebugBuild && state.credential.equals("demo", ignoreCase = true) && state.password == "demo") {
-            val user = if (state.asProfessor) {
+        // Acceso demo solo en compilaciones de desarrollo ("demo" = alumno, "demodocente" = docente);
+        // en producción esas credenciales van a la API como cualquier otra
+        val demoId = state.credential.trim().lowercase()
+        if (isDebugBuild && (demoId == "demo" || demoId == "demodocente") && state.password == "demo") {
+            val user = if (demoId == "demodocente") {
                 User(
                     id = "docente-demo",
                     name = "Roberto García",
@@ -97,7 +94,7 @@ class LoginViewModel(
 
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            val result = loginUseCase(state.credential, state.password, state.asProfessor)
+            val result = loginUseCase(state.credential, state.password)
             result.fold(
                 onSuccess = { user ->
                     _uiState.value = _uiState.value.copy(

@@ -86,10 +86,6 @@ fun PermissionsScreen(
             ) {
                 item {
                     Text("Permisos", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = InkColor)
-                    Text(
-                        if (state.isProfessor) "Solicitudes de tus tutorados" else "Tus solicitudes y su estado",
-                        color = MutedColor
-                    )
                 }
                 if (state.isProfessor) {
                     item {
@@ -126,11 +122,6 @@ fun PermissionsScreen(
                                 !state.isProfessor -> "Aún no tienes solicitudes"
                                 tab == 0 -> "No hay solicitudes por revisar"
                                 else -> "Todavía no has revisado solicitudes"
-                            },
-                            body = if (state.isProfessor) {
-                                "Aquí aparecen los permisos que piden los alumnos de los que eres tutor."
-                            } else {
-                                "Si vas a faltar por un motivo justificado, crea una solicitud y tu tutor la revisará."
                             }
                         )
                     }

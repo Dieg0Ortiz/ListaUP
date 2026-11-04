@@ -157,8 +157,7 @@ fun ScheduleScreen(
                 state.sessions.isEmpty() -> item {
                     MessageState(
                         icon = AppIcons.Calendar,
-                        title = "Sin horario registrado",
-                        body = "Tu horario aparecerá aquí cuando esté cargado en el SIU para este periodo."
+                        title = "Sin horario registrado"
                     )
                 }
                 noDayInfo -> items(state.sessions, key = { it.id + it.horaInicio }) { session ->

@@ -125,8 +125,7 @@ fun AlertsScreen(
                         state.alerts.isEmpty() && state.error == null -> item {
                             MessageState(
                                 icon = AppIcons.CheckCircle,
-                                title = "Sin alumnos en riesgo",
-                                body = "Ningún alumno de tus grupos llega al límite de faltas."
+                                title = "Sin alumnos en riesgo"
                             )
                         }
                     }
@@ -140,8 +139,7 @@ fun AlertsScreen(
                         state.pendingRequests.isEmpty() && state.requestsError == null -> item {
                             MessageState(
                                 icon = AppIcons.Document,
-                                title = "Nada por revisar",
-                                body = "Las solicitudes de permiso de tus tutorados aparecerán aquí."
+                                title = "Nada por revisar"
                             )
                         }
                     }

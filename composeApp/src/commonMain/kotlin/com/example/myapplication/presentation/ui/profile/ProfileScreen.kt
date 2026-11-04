@@ -102,7 +102,6 @@ fun ProfileScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(Modifier.weight(1f)) {
                             Text("Ajustes de Asistencia", color = InkColor, fontWeight = FontWeight.Bold)
-                            Text("Umbrales, alertas y recordatorios", color = MutedColor, fontSize = 12.sp)
                         }
                         Text("›", color = PrimaryColor, fontSize = 24.sp)
                     }
@@ -116,13 +115,7 @@ fun ProfileScreen(
                 onClick = { confirmLogout = true },
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
-            Text(
-                "ListaUP • Soporte: ${AppConfig.SUPPORT_EMAIL}",
-                color = MutedColor,
-                fontSize = 12.sp,
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                textAlign = TextAlign.Center
-            )
+            Spacer(Modifier.height(24.dp))
         }
     }
     if (confirmLogout) {

@@ -95,8 +95,7 @@ fun NotificationsScreen(
                     visible.isEmpty() -> item {
                         MessageState(
                             icon = AppIcons.Bell,
-                            title = if (unreadOnly) "Estás al día" else "Sin notificaciones",
-                            body = if (unreadOnly) "No tienes notificaciones sin leer." else "Aquí verás los avisos sobre tus permisos y tu asistencia."
+                            title = if (unreadOnly) "Estás al día" else "Sin notificaciones"
                         )
                     }
                 }

@@ -124,18 +124,6 @@ fun SubjectDetailScreen(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
-            Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(SoftPurple).padding(14.dp)
-            ) {
-                Icon(AppIcons.Info, contentDescription = null, tint = PrimaryColor, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "Tu historial de asistencia por materia aparecerá aquí cuando la universidad habilite su consulta.",
-                    color = InkColor,
-                    fontSize = 13.sp
-                )
-            }
 
             Spacer(Modifier.height(20.dp))
             SecondaryButton("Solicitar permiso", onClick = onRequestPermission)

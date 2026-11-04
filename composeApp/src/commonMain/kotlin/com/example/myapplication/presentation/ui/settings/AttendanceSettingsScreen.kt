@@ -58,12 +58,6 @@ fun AttendanceSettingsScreen(
                 .padding(horizontal = 20.dp)
         ) {
             Text("Límite para alertas", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = InkColor)
-            Text(
-                "Un alumno aparece en Alertas y Reportes cuando acumula este número de faltas en uno de tus grupos.",
-                color = MutedColor,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
             Spacer(Modifier.height(8.dp))
             WhiteCard {
                 Row {
@@ -83,12 +77,6 @@ fun AttendanceSettingsScreen(
                     )
                 )
             }
-            Text(
-                "Este ajuste se guarda en este teléfono.",
-                color = MutedColor,
-                fontSize = 12.sp,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
             Spacer(Modifier.height(12.dp))
             if (justSaved) {
                 Text(

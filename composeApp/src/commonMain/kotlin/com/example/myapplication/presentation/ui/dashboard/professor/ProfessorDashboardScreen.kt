@@ -160,8 +160,7 @@ fun ProfessorDashboardScreen(
                 state.error == null && classes.isEmpty() -> item {
                     MessageState(
                         icon = AppIcons.List,
-                        title = "No tienes grupos asignados",
-                        body = "Cuando la universidad te asigne grupos para este periodo aparecerán aquí."
+                        title = "No tienes grupos asignados"
                     )
                 }
             }
@@ -185,7 +184,6 @@ fun ProfessorDashboardScreen(
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text("Alertas de asistencia", fontWeight = FontWeight.Bold, color = InkColor)
-                            Text("Alumnos que llegaron al límite de faltas", color = MutedColor, fontSize = 13.sp)
                         }
                         Text("Ver", color = PrimaryColor, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                     }
@@ -250,11 +248,6 @@ private fun WeekCard(week: WeeklyAttendance?, todayIndex: Int) {
         Spacer(Modifier.height(4.dp))
         if (average == null) {
             Text("Sin listas todavía", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
-            Text(
-                "El promedio aparecerá cuando pases lista en tus grupos.",
-                color = Color.White.copy(alpha = 0.75f),
-                fontSize = 13.sp
-            )
         } else {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("${average.roundToInt()}%", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 40.sp)

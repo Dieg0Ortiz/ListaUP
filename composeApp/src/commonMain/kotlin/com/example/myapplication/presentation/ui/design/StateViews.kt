@@ -55,7 +55,7 @@ fun LoadingState(text: String, modifier: Modifier = Modifier) {
 fun MessageState(
     icon: ImageVector,
     title: String,
-    body: String,
+    body: String = "",
     modifier: Modifier = Modifier,
     isError: Boolean = false,
     action: String? = null,

@@ -59,7 +59,6 @@ fun ProfessorClassesScreen(
         ) {
             item {
                 Text("Asistencia", color = InkColor, fontWeight = FontWeight.Bold, fontSize = 26.sp)
-                Text("Elige un grupo para pasar la lista de hoy.", color = MutedColor)
             }
             when {
                 firstLoad -> item { LoadingState("Cargando tus grupos…") }
@@ -67,8 +66,7 @@ fun ProfessorClassesScreen(
                 state.groups.isEmpty() -> item {
                     MessageState(
                         icon = AppIcons.List,
-                        title = "No tienes grupos asignados",
-                        body = "Cuando la universidad te asigne grupos para este periodo aparecerán aquí."
+                        title = "No tienes grupos asignados"
                     )
                 }
             }

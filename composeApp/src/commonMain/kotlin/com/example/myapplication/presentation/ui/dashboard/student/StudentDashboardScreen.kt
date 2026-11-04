@@ -171,11 +171,6 @@ fun StudentDashboardScreen(
                 item {
                     WhiteCard(modifier = Modifier.padding(horizontal = 20.dp), onClick = onRequestPermission) {
                         Text("Aún no has pedido permisos", color = InkColor, fontWeight = FontWeight.Bold)
-                        Text(
-                            "Si vas a faltar por un motivo justificado, solicítalo aquí y tu tutor lo revisará.",
-                            color = MutedColor,
-                            fontSize = 13.sp
-                        )
                     }
                 }
             }
@@ -251,11 +246,6 @@ private fun NextClassCard(next: Pair<ClassSession, String>?, loading: Boolean, o
             loading -> Text("Cargando…", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
             else -> {
                 Text("Sin clases registradas", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                Text(
-                    "Tu horario aparecerá aquí cuando esté cargado en el SIU.",
-                    color = Color.White.copy(alpha = 0.8f),
-                    fontSize = 13.sp
-                )
             }
         }
     }

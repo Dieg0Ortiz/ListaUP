@@ -104,12 +104,7 @@ fun PermissionRequestScreen(
                 .imePadding()
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            Text(
-                "Tu tutor revisa la solicitud y después Dirección la autoriza. Te avisaremos en Notificaciones.",
-                color = MutedColor,
-                fontSize = 14.sp
-            )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(8.dp))
 
             FieldLabel("¿Cuánto tiempo vas a faltar?")
             Row(
@@ -189,7 +184,7 @@ fun PermissionRequestScreen(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                "Constancia médica u oficio. Solo PDF, máximo 1 MB.",
+                                "PDF · máx. 1 MB",
                                 color = MutedColor,
                                 fontSize = 12.sp
                             )

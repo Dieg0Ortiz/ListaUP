@@ -122,8 +122,7 @@ fun SubjectsScreen(
                 state.groups.isEmpty() -> item {
                     MessageState(
                         icon = AppIcons.List,
-                        title = "No tienes materias en este periodo",
-                        body = "Si crees que es un error, revisa tu inscripción con Servicios Escolares."
+                        title = "No tienes materias en este periodo"
                     )
                 }
                 visible.isEmpty() -> item {

@@ -77,7 +77,6 @@ fun ReportsScreen(
         ) {
             item {
                 Text("Reportes", fontWeight = FontWeight.Bold, fontSize = 24.sp, color = InkColor)
-                Text("Asistencia acumulada del periodo en tus grupos", color = MutedColor)
             }
             when {
                 firstLoad -> item { LoadingState("Calculando asistencia…") }
@@ -85,8 +84,7 @@ fun ReportsScreen(
                 state.groups.isEmpty() -> item {
                     MessageState(
                         icon = AppIcons.Chart,
-                        title = "Aún no hay listas registradas",
-                        body = "Los reportes se llenan conforme pases lista en tus grupos."
+                        title = "Aún no hay listas registradas"
                     )
                 }
                 else -> {
